@@ -1,5 +1,9 @@
 # SiriWave
 
+
+which does not rely on container and residing in the browser. Totally forked from [kopiro/siriwave](https://github.com/kopiro/siriwave)
+
+
 The "Apple Siri" wave replicated in pure Javascript using the Canvas API.
 
 [Read blog post here](https://developers.caffeina.com/how-i-built-siriwavejs-library-maths-and-code-behind-6971497ae5c1)
@@ -49,19 +53,19 @@ var siriWave = new SiriWave({
 
 ## Constructor options
 
-| Key        | Type          | Description                                                            | Default    | Required |
-| ---------- | ------------- | ---------------------------------------------------------------------- | ---------- | -------- |
-| container  | DOMElement    | The DOM container where the DOM canvas element will be added.          | null       | yes      |
-| style      | "ios", "ios9" | The style of the wave.                                                 | "ios"      | no       |
-| ratio      | Number        | Ratio of the display to use. Calculated by default.                    | calculated | no       |
-| speed      | Number        | The speed of the animation.                                            | 0.2        | no       |
-| amplitude  | Number        | The amplitude of the complete wave-form.                               | 1          | no       |
-| frequency  | Number        | The frequency of the complete wave-form. Only available in style "ios" | 6          | no       |
-| color      | String        | Color of the wave. Only available in style "ios"                       | "#fff"     | no       |
-| cover      | Bool          | The `canvas` covers the entire width or height of the container        | false      | no       |
-| autostart  | Bool          | Decide wether start the animation on boot.                             | false      | no       |
-| pixelDepth | Number        | Number of step (in pixels) used when drawed on canvas.                 | 0.02       | no       |
-| lerpSpeed  | Number        | Lerp speed to interpolate properties.                                  | 0.01       | no       |
+| Key        | Type          | Description                                                               | Default    | Required |
+| ---------- | ------------- | ------------------------------------------------------------------------- | ---------- | -------- |
+| ~~container~~  | ~~DOMElement~~    | ~~The DOM container where the DOM canvas element will be added.~~ | ~~null~~    | ~~yes~~ |
+| style      | "ios", "ios9" | The style of the wave.                                                    | "ios"      | no       |
+| ratio      | Number        | Ratio of the display to use. Calculated by default.                       | calculated | no       |
+| speed      | Number        | The speed of the animation.                                               | 0.2        | no       |
+| amplitude  | Number        | The amplitude of the complete wave-form.                                  | 1          | no       |
+| frequency  | Number        | The frequency of the complete wave-form. Only available in style "ios"    | 6          | no       |
+| color      | String        | Color of the wave. Only available in style "ios"                          | "#fff"     | no       |
+| cover      | Bool          | The `canvas` covers the entire width or height of the container           | false      | no       |
+| autostart  | Bool          | Decide wether start the animation on boot.                                | false      | no       |
+| pixelDepth | Number        | Number of step (in pixels) used when drawed on canvas.                    | 0.02       | no       |
+| lerpSpeed  | Number        | Lerp speed to interpolate properties.                                     | 0.01       | no       |
 
 ## API
 
