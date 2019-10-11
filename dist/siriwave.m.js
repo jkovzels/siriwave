@@ -292,7 +292,7 @@ function () {
   /**
    * Build the SiriWave
    * @param {Object} opt
-   * @param {DOMElement} [opt.container=document.body] The DOM container where the DOM canvas element will be added
+   * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
    * @param {String} [opt.style='ios'] The style of the wave: `ios` or `ios9`
    * @param {Number} [opt.ratio=null] Ratio of the display to use. Calculated by default.
    * @param {Number} [opt.speed=0.2] The speed of the animation.
@@ -311,18 +311,26 @@ function () {
 
     _classCallCheck(this, SiriWave);
 
-    this.container = opt.container || document.body; // In this.opt you could find definitive opt with defaults values
+    if (!opt.canvas) {
+      throw new Error("Canvas is required");
+    }
+    /**
+     * Canvas DOM Element where curves will be drawn
+     */
+
+
+    this.canvas = opt.canvas; // In this.opt you could find definitive opt with defaults values
 
     this.opt = Object.assign({
       style: 'ios',
-      ratio: window.devicePixelRatio || 1,
+      ratio: 1,
       speed: 0.2,
       amplitude: 1,
       frequency: 6,
       color: '#fff',
       cover: false,
-      width: window.getComputedStyle(this.container).width.replace('px', ''),
-      height: window.getComputedStyle(this.container).height.replace('px', ''),
+      width: this.canvas.width,
+      height: this.canvas.height,
       autostart: false,
       pixelDepth: 0.02,
       lerpSpeed: 0.1
@@ -376,11 +384,6 @@ function () {
       speed: this.speed,
       amplitude: this.amplitude
     };
-    /**
-     * Canvas DOM Element where curves will be drawn
-     */
-
-    this.canvas = document.createElement('canvas');
     /**
      * 2D Context from Canvas
      */
@@ -457,10 +460,8 @@ function () {
           }
         }
       }
-    } // Attach to the container
+    } // Start the animation
 
-
-    this.container.appendChild(this.canvas); // Start the animation
 
     if (opt.autostart) {
       this.start();

@@ -7,7 +7,7 @@ export default class SiriWave {
 	/**
 	 * Build the SiriWave
 	 * @param {Object} opt
-	 * @param {DOMElement} [opt.container=document.body] The DOM container where the DOM canvas element will be added
+	 * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
 	 * @param {String} [opt.style='ios'] The style of the wave: `ios` or `ios9`
 	 * @param {Number} [opt.ratio=null] Ratio of the display to use. Calculated by default.
 	 * @param {Number} [opt.speed=0.2] The speed of the animation.
@@ -22,20 +22,29 @@ export default class SiriWave {
 	 * @param {Number} [opt.lerpSpeed=0.1] Lerp speed to interpolate properties.
 	 */
 	constructor(opt = {}) {
-		this.container = opt.container || document.body;
+
+		if(!opt.canvas) {
+			throw new Error("Canvas is required");
+		}
+
+		/**
+		 * Canvas DOM Element where curves will be drawn
+		 */
+		this.canvas = opt.canvas;
+
 
 		// In this.opt you could find definitive opt with defaults values
 		this.opt = Object.assign(
 			{
 				style: 'ios',
-				ratio: window.devicePixelRatio || 1,
+				ratio: 1,
 				speed: 0.2,
 				amplitude: 1,
 				frequency: 6,
 				color: '#fff',
 				cover: false,
-				width: window.getComputedStyle(this.container).width.replace('px', ''),
-				height: window.getComputedStyle(this.container).height.replace('px', ''),
+				width: this.canvas.width,
+				height: this.canvas.height,
 				autostart: false,
 				pixelDepth: 0.02,
 				lerpSpeed: 0.1,
@@ -93,11 +102,6 @@ export default class SiriWave {
 		};
 
 		/**
-		 * Canvas DOM Element where curves will be drawn
-		 */
-		this.canvas = document.createElement('canvas');
-
-		/**
 		 * 2D Context from Canvas
 		 */
 		this.ctx = this.canvas.getContext('2d');
@@ -113,7 +117,6 @@ export default class SiriWave {
 			this.canvas.style.width = `${this.width / this.opt.ratio}px`;
 			this.canvas.style.height = `${this.height / this.opt.ratio}px`;
 		}
-
 		/**
 		 * Curves objects to animate
 		 */
@@ -139,9 +142,6 @@ export default class SiriWave {
 				);
 			}
 		}
-
-		// Attach to the container
-		this.container.appendChild(this.canvas);
 
 		// Start the animation
 		if (opt.autostart) {
