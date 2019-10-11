@@ -1,3 +1,5 @@
+
+(function(l, i, v, e) {v = l.createElement(i); v.async = 1; v.src = '//' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; e = l.getElementsByTagName(i)[0]; e.parentNode.insertBefore(v, e)})(document, 'script');
 (function(global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 		typeof define === 'function' && define.amd ? define(factory) :
@@ -27,7 +29,7 @@
 		return Constructor;
 	}
 
-	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 	function createCommonjsModule(fn, module) {
 		return module = {exports: {}}, fn(module, module.exports), module.exports;
@@ -369,9 +371,7 @@
 
 					var maxY = -Infinity;
 
-					var _arr = [1, -1];
-
-					for (var _i = 0;_i < _arr.length;_i++) {
+					for (var _i = 0, _arr = [1, -1];_i < _arr.length;_i++) {
 						var sign = _arr[_i];
 						ctx.beginPath();
 
@@ -554,8 +554,8 @@
 						_iteratorError = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion && _iterator.return != null) {
-								_iterator.return();
+							if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+								_iterator["return"]();
 							}
 						} finally {
 							if (_didIteratorError) {
@@ -581,8 +581,8 @@
 						_iteratorError2 = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-								_iterator2.return();
+							if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+								_iterator2["return"]();
 							}
 						} finally {
 							if (_didIteratorError2) {
@@ -669,8 +669,8 @@
 						_iteratorError3 = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-								_iterator3.return();
+							if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
+								_iterator3["return"]();
 							}
 						} finally {
 							if (_didIteratorError3) {
