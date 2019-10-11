@@ -289,7 +289,7 @@ function () {
 var SiriWave =
 /*#__PURE__*/
 function () {
-  /**
+  /** 
    * Build the SiriWave
    * @param {Object} opt
    * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.

@@ -4,7 +4,7 @@ import Curve from './curve';
 import iOS9Curve from './ios9curve';
 
 export default class SiriWave {
-	/**
+	/** 
 	 * Build the SiriWave
 	 * @param {Object} opt
 	 * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
