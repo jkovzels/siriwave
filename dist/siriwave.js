@@ -3,7 +3,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.SiriWave = factory());
+  (global.Siriwave = factory());
 }(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
@@ -28,7 +28,7 @@
     return Constructor;
   }
 
-  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -70,7 +70,7 @@
 
   }).call(commonjsGlobal);
 
-  //# sourceMappingURL=performance-now.js.map
+
   });
 
   var root = typeof window === 'undefined' ? commonjsGlobal : window
@@ -370,7 +370,9 @@
 
         var maxY = -Infinity;
 
-        for (var _i = 0, _arr = [1, -1]; _i < _arr.length; _i++) {
+        var _arr = [1, -1];
+
+        for (var _i = 0; _i < _arr.length; _i++) {
           var sign = _arr[_i];
           ctx.beginPath();
 
@@ -418,11 +420,10 @@
     return iOS9Curve;
   }();
 
-  var SiriWave =
+  var Siriwave =
   /*#__PURE__*/
   function () {
     /** 
-     * Build the SiriWave
      * @param {Object} opt
      * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
      * @param {String} [opt.style='ios'] The style of the wave: `ios` or `ios9`
@@ -438,10 +439,10 @@
      * @param {Number} [opt.pixelDepth=0.02] Number of step (in pixels) used when drawed on canvas.
      * @param {Number} [opt.lerpSpeed=0.1] Lerp speed to interpolate properties.
      */
-    function SiriWave() {
+    function Siriwave() {
       var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-      _classCallCheck(this, SiriWave);
+      _classCallCheck(this, Siriwave);
 
       if (!opt.canvas) {
         throw new Error("Canvas is required");
@@ -556,8 +557,8 @@
           _iteratorError = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion && _iterator["return"] != null) {
-              _iterator["return"]();
+            if (!_iteratorNormalCompletion && _iterator.return != null) {
+              _iterator.return();
             }
           } finally {
             if (_didIteratorError) {
@@ -583,8 +584,8 @@
           _iteratorError2 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
-              _iterator2["return"]();
+            if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+              _iterator2.return();
             }
           } finally {
             if (_didIteratorError2) {
@@ -607,7 +608,7 @@
      */
 
 
-    _createClass(SiriWave, [{
+    _createClass(Siriwave, [{
       key: "hex2rgb",
       value: function hex2rgb(hex) {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -669,8 +670,8 @@
           _iteratorError3 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
-              _iterator3["return"]();
+            if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
+              _iterator3.return();
             }
           } finally {
             if (_didIteratorError3) {
@@ -762,9 +763,9 @@
       }
     }]);
 
-    return SiriWave;
+    return Siriwave;
   }();
 
-  return SiriWave;
+  return Siriwave;
 
 })));

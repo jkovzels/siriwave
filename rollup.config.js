@@ -18,11 +18,11 @@ if (process.env.NODE_ENV !== 'production') {
 			contentBase: '.'
 		})
 	);
-	additional_plugins.push(
-		livereload({
-			watch: 'dist'
-		})
-	);
+	 additional_plugins.push(
+	 	livereload({
+	 		watch: 'dist'
+	 	})
+	 );
 }
 
 export default [{
@@ -39,6 +39,20 @@ export default [{
 				exclude: 'node_modules/**'
 			}),
 		].concat(additional_plugins)
+	},
+	{
+		input: 'src/siriwave.js',
+		output: {
+			file: pkg.main,
+			format: 'cjs'
+		},
+		plugins: [
+			resolve(),
+			commonjs(),
+			babel({
+				exclude: 'node_modules/**'
+			}),
+		]
 	},
 	{
 		input: 'src/siriwave.js',

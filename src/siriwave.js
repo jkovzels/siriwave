@@ -3,9 +3,8 @@ import lerp from 'lerp';
 import Curve from './curve';
 import iOS9Curve from './ios9curve';
 
-export default class SiriWave {
+export default class Siriwave {
 	/** 
-	 * Build the SiriWave
 	 * @param {Object} opt
 	 * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
 	 * @param {String} [opt.style='ios'] The style of the wave: `ios` or `ios9`

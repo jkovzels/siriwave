@@ -43,7 +43,7 @@ Create a div container and instantiate a SiriWave object
 ```html
 <div id="siri-container"></div>
 <script>
-var siriWave = new SiriWave({
+var siriWave = new Siriwave({
 	container: document.getElementById('siri-container'),
 	width: 640,
 	height: 200,
