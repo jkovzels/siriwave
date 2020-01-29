@@ -2,7 +2,7 @@ declare interface SiriwaveOptions {
 	canvas: HTMLCanvasElement;
 }
 declare class Siriwave {
-	constructor(...args: SiriwaveOptions);
+	constructor(options: SiriwaveOptions);
 
 	hex2rgb(hex: any): any;
 
