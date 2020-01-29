@@ -9,7 +9,7 @@
 	"unpkg": "dist/siriwave.js",
 	"amdName": "Siriwave",
 	"scripts": {
-		"build": "rollup -c --environment INCLUDE_DEPS,BUILD:production",
+		"build": "rollup -c --environment INCLUDE_DEPS,NODE_ENV:production",
 		"dev": "rollup -c -w"
 	},
 	"repository": {
@@ -37,5 +37,7 @@
 		"rollup-plugin-serve": "^0.6.0",
 		"rollup-plugin-uglify": "^6.0.0"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"rollup-plugin-copy": "^3.3.0"
+	}
 }

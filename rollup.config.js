@@ -1,13 +1,15 @@
 import babel from 'rollup-plugin-babel';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import {
-	uglify
-} from 'rollup-plugin-uglify';
+import { uglify } from 'rollup-plugin-uglify';
 import livereload from 'rollup-plugin-livereload';
 import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy';
 
 import pkg from './package.json';
+
+
+const copySetup = copy({targets: [{src: 'src/siriwave.d.ts', dest: 'dist'}], verbose: true})
 
 const additional_plugins = [];
 
@@ -35,6 +37,7 @@ export default [{
 		plugins: [
 			resolve(),
 			commonjs(),
+			copySetup,
 			babel({
 				exclude: 'node_modules/**'
 			}),
@@ -49,6 +52,7 @@ export default [{
 		plugins: [
 			resolve(),
 			commonjs(),
+			copySetup,
 			babel({
 				exclude: 'node_modules/**'
 			}),
@@ -64,6 +68,7 @@ export default [{
 		plugins: [
 			resolve(),
 			commonjs(),
+			copySetup,
 			babel({
 				exclude: 'node_modules/**'
 			}),
@@ -77,6 +82,7 @@ export default [{
 			format: 'esm'
 		}],
 		plugins: [
+			copySetup,
 			babel({
 				exclude: 'node_modules/**'
 			}),
