@@ -493,7 +493,8 @@ function () {
     value: function _clear() {
       return;
       this.ctx.globalCompositeOperation = 'destination-out';
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      this.ctx.fillStyle = "#8a2be2";
+      this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
       this.ctx.globalCompositeOperation = 'source-over';
     }
     /**
