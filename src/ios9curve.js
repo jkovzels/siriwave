@@ -1,6 +1,14 @@
 export default class iOS9Curve {
 	constructor(opt = {}) {
 		this.ctrl = opt.ctrl;
+
+		this.xOffset = opt.ctrl.xOffset;
+		this.yOffset = opt.ctrl.yOffset;
+		this.height = opt.ctrl.height;
+		this.width = opt.ctrl.width;
+
+		this.midLine = this.yOffset + this.height / 2;
+
 		this.definition = opt.definition;
 
 		this.GRAPH_X = 25;
@@ -93,7 +101,7 @@ export default class iOS9Curve {
 	_ypos(i) {
 		return (
 			this.AMPLITUDE_FACTOR
-			* this.ctrl.heightMax
+			* this.midLine
 			* this.ctrl.amplitude
 			* this.yRelativePos(i)
 			* this.globalAttFn((i / this.GRAPH_X) * 2)
@@ -104,27 +112,24 @@ export default class iOS9Curve {
 		return this.ctrl.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2));
 	}
 
-	drawSupportLine(ctx) {
-		const coo = [0, this.ctrl.heightMax, this.ctrl.width, 1];
-		const gradient = ctx.createLinearGradient.apply(ctx, coo);
+	drawSupportLine(ctx, colorDef) {
+		var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
+		var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
 		gradient.addColorStop(0, 'transparent');
-		gradient.addColorStop(0.1, 'rgba(255,255,255,.5)');
-		gradient.addColorStop(1 - 0.1 - 0.1, 'rgba(255,255,255,.5)');
+		gradient.addColorStop(0.1, `rgba(${colorDef}, 1)`);
+		gradient.addColorStop(0.9, `rgba(${colorDef}, 1)`);
 		gradient.addColorStop(1, 'transparent');
 
 		ctx.fillStyle = gradient;
-		ctx.fillRect.apply(ctx, coo);
+		ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
 	}
 
 	draw() {
 		const {ctx} = this.ctrl;
-
-		ctx.globalAlpha = 0.7;
-		ctx.globalCompositeOperation = 'lighter';
-
+		//ctx.globalAlpha = 0.7;
+		//ctx.globalCompositeOperation = 'lighter';
 		if (this.definition.supportLine) {
-			// Draw the support line
-			return this.drawSupportLine(ctx);
+			return this.drawSupportLine(ctx, this.definition.color);
 		}
 
 		for (let ci = 0;ci < this.noOfCurves;ci++) {
@@ -148,7 +153,7 @@ export default class iOS9Curve {
 			for (let i = -this.GRAPH_X;i <= this.GRAPH_X;i += this.ctrl.opt.pixelDepth) {
 				const x = this._xpos(i);
 				const y = this._ypos(i);
-				ctx.lineTo(x, this.ctrl.heightMax - sign * y);
+				ctx.lineTo(x, this.midLine - sign * y);
 
 				minX = Math.min(minX, x);
 				maxY = Math.max(maxY, y);
@@ -156,8 +161,8 @@ export default class iOS9Curve {
 
 			ctx.closePath();
 
-			ctx.fillStyle = `rgba(${this.definition.color}, 1)`;
-			ctx.strokeStyle = `rgba(${this.definition.color}, 1)`;
+			ctx.fillStyle = `rgba(${this.definition.color}, .5)`;
+			ctx.strokeStyle = `rgba(${this.definition.color}, .5)`;
 			ctx.fill();
 		}
 
@@ -167,7 +172,7 @@ export default class iOS9Curve {
 
 		this.prevMaxY = maxY;
 
-		return null;
+		return;
 	}
 
 	static getDefinition(waveColors) {

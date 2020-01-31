@@ -106,6 +106,11 @@ function () {
     _classCallCheck(this, iOS9Curve);
 
     this.ctrl = opt.ctrl;
+    this.xOffset = opt.ctrl.xOffset;
+    this.yOffset = opt.ctrl.yOffset;
+    this.height = opt.ctrl.height;
+    this.width = opt.ctrl.width;
+    this.midLine = this.yOffset + this.height / 2;
     this.definition = opt.definition;
     this.GRAPH_X = 25;
     this.AMPLITUDE_FACTOR = 0.8;
@@ -194,7 +199,7 @@ function () {
   }, {
     key: "_ypos",
     value: function _ypos(i) {
-      return this.AMPLITUDE_FACTOR * this.ctrl.heightMax * this.ctrl.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
+      return this.AMPLITUDE_FACTOR * this.midLine * this.ctrl.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
     }
   }, {
     key: "_xpos",
@@ -203,26 +208,24 @@ function () {
     }
   }, {
     key: "drawSupportLine",
-    value: function drawSupportLine(ctx) {
-      var coo = [0, this.ctrl.heightMax, this.ctrl.width, 1];
-      var gradient = ctx.createLinearGradient.apply(ctx, coo);
+    value: function drawSupportLine(ctx, colorDef) {
+      var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
+      var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
       gradient.addColorStop(0, 'transparent');
-      gradient.addColorStop(0.1, 'rgba(255,255,255,.5)');
-      gradient.addColorStop(1 - 0.1 - 0.1, 'rgba(255,255,255,.5)');
+      gradient.addColorStop(0.1, "rgba(".concat(colorDef, ", 1)"));
+      gradient.addColorStop(0.9, "rgba(".concat(colorDef, ", 1)"));
       gradient.addColorStop(1, 'transparent');
       ctx.fillStyle = gradient;
-      ctx.fillRect.apply(ctx, coo);
+      ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
     }
   }, {
     key: "draw",
     value: function draw() {
-      var ctx = this.ctrl.ctx;
-      ctx.globalAlpha = 0.7;
-      ctx.globalCompositeOperation = 'lighter';
+      var ctx = this.ctrl.ctx; //ctx.globalAlpha = 0.7;
+      //ctx.globalCompositeOperation = 'lighter';
 
       if (this.definition.supportLine) {
-        // Draw the support line
-        return this.drawSupportLine(ctx);
+        return this.drawSupportLine(ctx, this.definition.color);
       }
 
       for (var ci = 0; ci < this.noOfCurves; ci++) {
@@ -249,13 +252,13 @@ function () {
 
           var y = this._ypos(i);
 
-          ctx.lineTo(x, this.ctrl.heightMax - sign * y);
+          ctx.lineTo(x, this.midLine - sign * y);
           maxY = Math.max(maxY, y);
         }
 
         ctx.closePath();
-        ctx.fillStyle = "rgba(".concat(this.definition.color, ", 1)");
-        ctx.strokeStyle = "rgba(".concat(this.definition.color, ", 1)");
+        ctx.fillStyle = "rgba(".concat(this.definition.color, ", .5)");
+        ctx.strokeStyle = "rgba(".concat(this.definition.color, ", .5)");
         ctx.fill();
       }
 
@@ -264,7 +267,7 @@ function () {
       }
 
       this.prevMaxY = maxY;
-      return null;
+      return;
     }
   }], [{
     key: "getDefinition",
@@ -291,22 +294,6 @@ function () {
 var Siriwave =
 /*#__PURE__*/
 function () {
-  /** 
-   * @param {Object} opt
-   * @param {HTMLCanvasElement} [opt.canvas] The canvas to draw on.
-   * @param {String} [opt.style='ios'] The style of the wave: `ios` or `ios9`
-   * @param {Number} [opt.ratio=null] Ratio of the display to use. Calculated by default.
-   * @param {Number} [opt.speed=0.2] The speed of the animation.
-   * @param {Number} [opt.amplitude=1] The amplitude of the complete wave.
-   * @param {Number} [opt.frequency=6] The frequency for the complete wave (how many waves). - Not available in iOS9 Style
-   * @param {String} [opt.color='#fff'] The color of the wave, in hexadecimal form (`#336699`, `#FF0`). - Not available in iOS9 Style
-   * @param {Boolean} [opt.cover=false] The `canvas` covers the entire width or height of the container.
-   * @param {Number} [opt.width=null] Width of the canvas. Calculated by default.
-   * @param {Number} [opt.height=null] Height of the canvas. Calculated by default.
-   * @param {Boolean} [opt.autostart=false] Decide wether start the animation on boot.
-   * @param {Number} [opt.pixelDepth=0.02] Number of step (in pixels) used when drawed on canvas.
-   * @param {Number} [opt.lerpSpeed=0.1] Lerp speed to interpolate properties.
-   */
   function Siriwave() {
     var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
@@ -330,6 +317,8 @@ function () {
       frequency: 6,
       color: '#fff',
       cover: false,
+      xOffset: 0,
+      yOffset: 0,
       width: this.canvas.width,
       height: this.canvas.height,
       autostart: false,
@@ -356,6 +345,12 @@ function () {
      */
 
     this.amplitude = Number(this.opt.amplitude);
+    /** Left and right padding in pixels of waveform allowed area on the canvas */
+
+    this.xOffset = Number(this.opt.xOffset);
+    /** Bottom padding in pixels of waveform allowed area on the canvas */
+
+    this.yOffset = Number(this.opt.yOffset);
     /**
      * Width of the canvas multiplied by pixel ratio
      */
@@ -366,11 +361,6 @@ function () {
      */
 
     this.height = Number(this.opt.ratio * this.opt.height);
-    /**
-     * Maximum height for a single wave
-     */
-
-    this.heightMax = Number(this.height / 2) - 6;
     /**
      * Color of the wave (used in Classic iOS)
      */
@@ -389,21 +379,10 @@ function () {
      * 2D Context from Canvas
      */
 
-    this.ctx = this.canvas.getContext('2d'); // Set dimensions
-
-    this.canvas.width = this.width;
-    this.canvas.height = this.height; // By covering, we ensure the canvas is in the same size of the parent
-
-    if (this.opt.cover === true) {
-      this.canvas.style.width = this.canvas.style.height = '100%';
-    } else {
-      this.canvas.style.width = "".concat(this.width / this.opt.ratio, "px");
-      this.canvas.style.height = "".concat(this.height / this.opt.ratio, "px");
-    }
+    this.ctx = this.canvas.getContext('2d');
     /**
      * Curves objects to animate
      */
-
 
     this.curves = []; // Instantiate all curves based on the style
 
@@ -472,7 +451,7 @@ function () {
    * Convert an HEX color to RGB
    * @param {String} hex
    * @returns RGB value that could be used
-   * @memberof SiriWave
+   * @memberof Siriwave
    */
 
 
@@ -490,7 +469,7 @@ function () {
      * Interpolate a property to the value found in $.interpolation
      * @param {String} propertyStr
      * @returns
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -506,19 +485,20 @@ function () {
     }
     /**
      * Clear the canvas
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
     key: "_clear",
     value: function _clear() {
+      return;
       this.ctx.globalCompositeOperation = 'destination-out';
       this.ctx.fillRect(0, 0, this.width, this.height);
       this.ctx.globalCompositeOperation = 'source-over';
     }
     /**
      * Draw all curves
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -551,7 +531,7 @@ function () {
     /**
      * Clear the space, interpolate values, calculate new steps and draws
      * @returns
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -574,7 +554,7 @@ function () {
 
     /**
      * Start the animation
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -586,7 +566,7 @@ function () {
     }
     /**
      * Stop the animation
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -599,7 +579,7 @@ function () {
      * Set a new value for a property (interpolated)
      * @param {String} propertyStr
      * @param {Number} v
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -610,7 +590,7 @@ function () {
     /**
      * Set a new value for the speed property (interpolated)
      * @param {Number} v
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -621,7 +601,7 @@ function () {
     /**
      * Set a new value for the amplitude property (interpolated)
      * @param {Number} v
-     * @memberof SiriWave
+     * @memberof Siriwave
      */
 
   }, {
@@ -634,4 +614,4 @@ function () {
   return Siriwave;
 }();
 
-export default Siriwave;
+export { Siriwave };
