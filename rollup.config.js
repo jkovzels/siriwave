@@ -50,12 +50,8 @@ export default [{
 			format: 'cjs'
 		},
 		plugins: [
-			resolve(),
 			commonjs(),
-			copySetup,
-			babel({
-				exclude: 'node_modules/**'
-			}),
+			copySetup
 		]
 	},
 	{

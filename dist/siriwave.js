@@ -153,80 +153,6 @@
   }
   var lerp_1 = lerp;
 
-  var Curve =
-  /*#__PURE__*/
-  function () {
-    function Curve(opt) {
-      _classCallCheck(this, Curve);
-
-      this.ctrl = opt.ctrl;
-      this.definition = opt.definition;
-      this.ATT_FACTOR = 4;
-      this.GRAPH_X = 2;
-      this.AMPLITUDE_FACTOR = 0.6;
-    }
-
-    _createClass(Curve, [{
-      key: "globalAttFn",
-      value: function globalAttFn(x) {
-        return Math.pow(this.ATT_FACTOR / (this.ATT_FACTOR + Math.pow(x, this.ATT_FACTOR)), this.ATT_FACTOR);
-      }
-    }, {
-      key: "_xpos",
-      value: function _xpos(i) {
-        return this.ctrl.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2));
-      }
-    }, {
-      key: "_ypos",
-      value: function _ypos(i) {
-        return this.AMPLITUDE_FACTOR * (this.globalAttFn(i) * (this.ctrl.heightMax * this.ctrl.amplitude) * (1 / this.definition.attenuation) * Math.sin(this.ctrl.opt.frequency * i - this.ctrl.phase));
-      }
-    }, {
-      key: "draw",
-      value: function draw() {
-        var ctx = this.ctrl.ctx;
-        ctx.moveTo(0, 0);
-        ctx.beginPath();
-        var color = this.ctrl.color.replace(/rgb\(/g, '').replace(/\)/g, '');
-        ctx.strokeStyle = "rgba(".concat(color, ",").concat(this.definition.opacity, ")");
-        ctx.lineWidth = this.definition.lineWidth; // Cycle the graph from -X to +X every PX_DEPTH and draw the line
-
-        for (var i = -this.GRAPH_X; i <= this.GRAPH_X; i += this.ctrl.opt.pixelDepth) {
-          ctx.lineTo(this._xpos(i), this.ctrl.heightMax + this._ypos(i));
-        }
-
-        ctx.stroke();
-      }
-    }], [{
-      key: "getDefinition",
-      value: function getDefinition() {
-        return [{
-          attenuation: -2,
-          lineWidth: 1,
-          opacity: 0.1
-        }, {
-          attenuation: -6,
-          lineWidth: 1,
-          opacity: 0.2
-        }, {
-          attenuation: 4,
-          lineWidth: 1,
-          opacity: 0.4
-        }, {
-          attenuation: 2,
-          lineWidth: 1,
-          opacity: 0.6
-        }, {
-          attenuation: 1,
-          lineWidth: 1.5,
-          opacity: 1
-        }];
-      }
-    }]);
-
-    return Curve;
-  }();
-
   var iOS9Curve =
   /*#__PURE__*/
   function () {
@@ -603,8 +529,8 @@
        */
 
     }, {
-      key: "lerp",
-      value: function lerp(propertyStr) {
+      key: "lerpProp",
+      value: function lerpProp(propertyStr) {
         this[propertyStr] = lerp_1(this[propertyStr], this.interpolation[propertyStr], this.opt.lerpSpeed);
 
         if (this[propertyStr] - this.interpolation[propertyStr] === 0) {
@@ -621,9 +547,7 @@
     }, {
       key: "_clear",
       value: function _clear() {
-        return;
         this.ctx.globalCompositeOperation = 'destination-out';
-        this.ctx.fillStyle = "#8a2be2";
         this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
         this.ctx.globalCompositeOperation = 'source-over';
       }
@@ -677,8 +601,8 @@
         this._clear(); // Interpolate values
 
 
-        if (this.interpolation.amplitude !== null) this.lerp('amplitude');
-        if (this.interpolation.speed !== null) this.lerp('speed');
+        if (this.interpolation.amplitude !== null) this.lerpProp('amplitude');
+        if (this.interpolation.speed !== null) this.lerpProp('speed');
         this.drawFrame();
         this.phase = (this.phase + Math.PI / 2 * this.speed) % (2 * Math.PI);
         raf_1(this.startDrawCycle.bind(this), 20);

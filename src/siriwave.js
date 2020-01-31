@@ -1,6 +1,6 @@
 import raf from 'raf';
 import lerp from 'lerp';
-import Curve from './curve';
+//import Curve from './curve'; commenting for now, not using
 import iOS9Curve from './ios9curve';
 
 export class Siriwave {
@@ -148,7 +148,7 @@ export class Siriwave {
 	 * @returns
 	 * @memberof Siriwave
 	 */
-	lerp(propertyStr) {
+	lerpProp(propertyStr) {
 		this[propertyStr] = lerp(
 			this[propertyStr],
 			this.interpolation[propertyStr],
@@ -165,9 +165,7 @@ export class Siriwave {
 	 * @memberof Siriwave
 	 */
 	_clear() {
-		return;
 		this.ctx.globalCompositeOperation = 'destination-out';
-		this.ctx.fillStyle = "#8a2be2"
 		this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
 		this.ctx.globalCompositeOperation = 'source-over';
 	}
@@ -195,8 +193,8 @@ export class Siriwave {
 		this._clear();
 
 		// Interpolate values
-		if (this.interpolation.amplitude !== null) this.lerp('amplitude');
-		if (this.interpolation.speed !== null) this.lerp('speed');
+		if (this.interpolation.amplitude !== null) this.lerpProp('amplitude');
+		if (this.interpolation.speed !== null) this.lerpProp('speed');
 
 		this.drawFrame();
 		this.phase = (this.phase + (Math.PI / 2) * this.speed) % (2 * Math.PI);
