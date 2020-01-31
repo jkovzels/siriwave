@@ -175,7 +175,10 @@ export class Siriwave {
 	 * Draw all curves
 	 * @memberof Siriwave
 	 */
-	_draw() {
+	drawFrame(amplitide) {
+		if (amplitide || amplitide === 0){
+			this.setAmplitude(amplitide);
+		}
 		for (const curve of this.curves) {
 			curve.draw();
 		}
@@ -194,7 +197,7 @@ export class Siriwave {
 		if (this.interpolation.amplitude !== null) this.lerp('amplitude');
 		if (this.interpolation.speed !== null) this.lerp('speed');
 
-		this._draw();
+		this.drawFrame();
 		this.phase = (this.phase + (Math.PI / 2) * this.speed) % (2 * Math.PI);
 
 		raf(this.startDrawCycle.bind(this), 20);

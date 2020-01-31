@@ -59,6 +59,8 @@ declare module siriwave {
 
 		startDrawCycle(): void;
 
+		drawFrame(amplitude: number): void;
+
 		stop(): void;
 	}
 }

@@ -632,8 +632,12 @@
        */
 
     }, {
-      key: "_draw",
-      value: function _draw() {
+      key: "drawFrame",
+      value: function drawFrame(amplitide) {
+        if (amplitide || amplitide === 0) {
+          this.setAmplitude(amplitide);
+        }
+
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;
         var _iteratorError3 = undefined;
@@ -674,9 +678,7 @@
 
         if (this.interpolation.amplitude !== null) this.lerp('amplitude');
         if (this.interpolation.speed !== null) this.lerp('speed');
-
-        this._draw();
-
+        this.drawFrame();
         this.phase = (this.phase + Math.PI / 2 * this.speed) % (2 * Math.PI);
         raf_1(this.startDrawCycle.bind(this), 20);
       }
