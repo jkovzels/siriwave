@@ -31,15 +31,16 @@ function () {
 
     _classCallCheck(this, iOS9Curve);
 
-    this.ctrl = opt.ctrl;
+    this.controller = opt.ctrl;
+    this.speed = opt;
     this.xOffset = opt.ctrl.xOffset;
     this.yOffset = opt.ctrl.yOffset;
     this.height = opt.ctrl.height;
     this.width = opt.ctrl.width;
     this.midLine = this.yOffset + this.height / 2;
     this.definition = opt.definition;
+    this.pixelDepth = opt.pixelDepth;
     this.GRAPH_X = 25;
-    this.AMPLITUDE_FACTOR = 0.8;
     this.SPEED_FACTOR = 1;
     this.DEAD_PX = 2;
     this.ATT_FACTOR = 4;
@@ -55,20 +56,20 @@ function () {
 
   _createClass(iOS9Curve, [{
     key: "getRandomRange",
-    value: function getRandomRange(e) {
-      return e[0] + Math.random() * (e[1] - e[0]);
+    value: function getRandomRange(range) {
+      return range[0] + Math.random() * (range[1] - range[0]);
     }
   }, {
     key: "respawnSingle",
-    value: function respawnSingle(ci) {
-      this.phases[ci] = 0;
-      this.amplitudes[ci] = 0;
-      this.despawnTimeouts[ci] = this.getRandomRange(this.DESPAWN_TIMEOUT_RANGES);
-      this.offsets[ci] = this.getRandomRange(this.OFFSET_RANGES);
-      this.speeds[ci] = this.getRandomRange(this.SPEED_RANGES);
-      this.finalAmplitudes[ci] = this.getRandomRange(this.AMPLITUDE_RANGES);
-      this.widths[ci] = this.getRandomRange(this.WIDTH_RANGES);
-      this.verses[ci] = this.getRandomRange([-1, 1]);
+    value: function respawnSingle(curveIndex) {
+      this.phases[curveIndex] = 0;
+      this.amplitudes[curveIndex] = 0;
+      this.despawnTimeouts[curveIndex] = this.getRandomRange(this.DESPAWN_TIMEOUT_RANGES);
+      this.offsets[curveIndex] = this.getRandomRange(this.OFFSET_RANGES);
+      this.speeds[curveIndex] = this.getRandomRange(this.SPEED_RANGES);
+      this.finalAmplitudes[curveIndex] = this.getRandomRange(this.AMPLITUDE_RANGES);
+      this.widths[curveIndex] = this.getRandomRange(this.WIDTH_RANGES);
+      this.verses[curveIndex] = this.getRandomRange([-1, 1]);
     }
   }, {
     key: "respawn",
@@ -84,8 +85,8 @@ function () {
       this.despawnTimeouts = new Array(this.noOfCurves);
       this.verses = new Array(this.noOfCurves);
 
-      for (var ci = 0; ci < this.noOfCurves; ci++) {
-        this.respawnSingle(ci);
+      for (var curveIndex = 0; curveIndex < this.noOfCurves; curveIndex++) {
+        this.respawnSingle(curveIndex);
       }
     }
   }, {
@@ -94,29 +95,18 @@ function () {
       return Math.pow(this.ATT_FACTOR / (this.ATT_FACTOR + Math.pow(x, 2)), this.ATT_FACTOR);
     }
   }, {
-    key: "sin",
-    value: function sin(x, phase) {
-      return Math.sin(x - phase);
-    }
-  }, {
-    key: "_grad",
-    value: function _grad(x, a, b) {
-      if (x > a && x < b) return 1;
-      return 1;
-    }
-  }, {
     key: "yRelativePos",
     value: function yRelativePos(i) {
       var y = 0;
 
       for (var ci = 0; ci < this.noOfCurves; ci++) {
-        // Generate a static T so that each curve is distant from each oterh
+        // Generate a static T so that each curve is distant from each other
         var t = 4 * (-1 + ci / (this.noOfCurves - 1) * 2); // but add a dynamic offset
 
         t += this.offsets[ci];
         var k = 1 / this.widths[ci];
         var x = i * k - t;
-        y += Math.abs(this.amplitudes[ci] * this.sin(this.verses[ci] * x, this.phases[ci]) * this.globalAttFn(x));
+        y += Math.abs(this.amplitudes[ci] * Math.sin(this.verses[ci] * x - this.phases[ci]) * this.globalAttFn(x));
       } // Divide for NoOfCurves so that y <= 1
 
 
@@ -125,29 +115,17 @@ function () {
   }, {
     key: "_ypos",
     value: function _ypos(i) {
-      return this.AMPLITUDE_FACTOR * this.midLine * this.ctrl.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
+      return this.AMPLITUDE_FACTOR() * this.midLine * this.controller.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
     }
   }, {
     key: "_xpos",
     value: function _xpos(i) {
-      return this.ctrl.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2));
-    }
-  }, {
-    key: "drawSupportLine",
-    value: function drawSupportLine(ctx, colorDef) {
-      var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
-      var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
-      gradient.addColorStop(0, 'transparent');
-      gradient.addColorStop(0.1, "rgba(".concat(colorDef, ", 1)"));
-      gradient.addColorStop(0.9, "rgba(".concat(colorDef, ", 1)"));
-      gradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = gradient;
-      ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
+      return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2));
     }
   }, {
     key: "draw",
     value: function draw() {
-      var ctx = this.ctrl.ctx; //ctx.globalAlpha = 0.7;
+      var ctx = this.controller.ctx; //ctx.globalAlpha = 0.7;
       //ctx.globalCompositeOperation = 'lighter';
 
       if (this.definition.supportLine) {
@@ -162,7 +140,7 @@ function () {
         }
 
         this.amplitudes[ci] = Math.min(Math.max(this.amplitudes[ci], 0), this.finalAmplitudes[ci]);
-        this.phases[ci] = (this.phases[ci] + this.ctrl.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
+        this.phases[ci] = (this.phases[ci] + this.controller.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
       }
 
       var maxY = -Infinity;
@@ -173,7 +151,7 @@ function () {
         var sign = _arr[_i];
         ctx.beginPath();
 
-        for (var i = -this.GRAPH_X; i <= this.GRAPH_X; i += this.ctrl.opt.pixelDepth) {
+        for (var i = -this.GRAPH_X; i <= this.GRAPH_X; i += this.pixelDepth) {
           var x = this._xpos(i);
 
           var y = this._ypos(i);
@@ -193,7 +171,18 @@ function () {
       }
 
       this.prevMaxY = maxY;
-      return;
+    }
+  }, {
+    key: "drawSupportLine",
+    value: function drawSupportLine(ctx, colorDef) {
+      var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
+      var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
+      gradient.addColorStop(0, 'transparent');
+      gradient.addColorStop(0.1, "rgba(".concat(colorDef, ", 1)"));
+      gradient.addColorStop(0.9, "rgba(".concat(colorDef, ", 1)"));
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
     }
   }], [{
     key: "getDefinition",
@@ -211,6 +200,11 @@ function () {
         // green
         color: '48, 220, 155'
       }], waveColors);
+    }
+  }, {
+    key: "AMPLITUDE_FACTOR",
+    get: function get() {
+      return 0.8;
     }
   }]);
 
@@ -322,7 +316,8 @@ function () {
           var def = _step.value;
           this.curves.push(new iOS9Curve({
             ctrl: this,
-            definition: def
+            definition: def,
+            pixelDepth: this.opt.pixelDepth
           }));
         }
       } catch (err) {

@@ -104,6 +104,7 @@ export class Siriwave {
 					new iOS9Curve({
 						ctrl: this,
 						definition: def,
+						pixelDepth: this.opt.pixelDepth
 					}),
 				);
 			}
