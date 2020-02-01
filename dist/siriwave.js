@@ -170,6 +170,7 @@
       this.midLine = this.yOffset + this.height / 2;
       this.definition = opt.definition;
       this.pixelDepth = opt.pixelDepth;
+      this.AMPLITUDE_FACTOR = 0.8;
       this.GRAPH_X = 25;
       this.SPEED_FACTOR = 1;
       this.DEAD_PX = 2;
@@ -245,7 +246,7 @@
     }, {
       key: "_ypos",
       value: function _ypos(i) {
-        return this.AMPLITUDE_FACTOR() * this.midLine * this.controller.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
+        return this.AMPLITUDE_FACTOR * this.midLine * this.controller.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
       }
     }, {
       key: "_xpos",
@@ -330,11 +331,6 @@
           // green
           color: '48, 220, 155'
         }], waveColors);
-      }
-    }, {
-      key: "AMPLITUDE_FACTOR",
-      get: function get() {
-        return 0.8;
       }
     }]);
 

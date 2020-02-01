@@ -12,6 +12,8 @@ export default class iOS9Curve {
 		this.definition = opt.definition;
 		this.pixelDepth = opt.pixelDepth;
 
+
+		this.AMPLITUDE_FACTOR = 0.8;
 		this.GRAPH_X = 25;
 
 		this.SPEED_FACTOR = 1;
@@ -89,13 +91,10 @@ export default class iOS9Curve {
 		// Divide for NoOfCurves so that y <= 1
 		return y / this.noOfCurves;
 	}
-
-	static get AMPLITUDE_FACTOR() { return 0.8; }
 	
 	_ypos(i) {
-		
 		return (
-			this.AMPLITUDE_FACTOR()
+			this.AMPLITUDE_FACTOR
 			* this.midLine
 			* this.controller.amplitude
 			* this.yRelativePos(i)
