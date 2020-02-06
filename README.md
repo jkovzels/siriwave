@@ -1,4 +1,4 @@
-# SiriWave
+# Siriwave
 
 
 Totally forked from [kopiro/siriwave](https://github.com/kopiro/siriwave)
