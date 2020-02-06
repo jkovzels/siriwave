@@ -117,10 +117,10 @@
 	canvas.height = window.getComputedStyle(container).height.replace('px', '');
 
 
-	var SW = new Siriwave.Siriwave({
-		canvas: canvas,
-		autostart: true
-	});
+	// var SW = new Siriwave.Siriwave({
+	// 	canvas: canvas,
+	// 	autostart: true
+	// });
 
 	canvas = document.createElement('canvas');
 	var container = document.getElementById("container-9");
@@ -137,9 +137,9 @@
 
 	window.onload = function() {
 		var gui = new dat.GUI();
-		gui.add(SW, "speed", 0, 1);
-		gui.add(SW, "amplitude", 0, 3);
-		gui.addColor(SW, "color");
+		// gui.add(SW, "speed", 0, 1);
+		// gui.add(SW, "amplitude", 0, 3);
+		// gui.addColor(SW, "color");
 
 		var gui9 = new dat.GUI();
 		gui9.add(SW9, "speed", 0, 1);

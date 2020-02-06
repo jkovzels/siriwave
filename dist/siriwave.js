@@ -162,62 +162,95 @@
       _classCallCheck(this, iOS9Curve);
 
       this.controller = opt.ctrl;
-      this.speed = opt;
+      this.speed = opt.speed;
       this.xOffset = opt.ctrl.xOffset;
       this.yOffset = opt.ctrl.yOffset;
       this.height = opt.ctrl.height;
       this.width = opt.ctrl.width;
+      /** Represents the middle line along y-axis in the allowed for drawing bounding box */
+
       this.midLine = this.yOffset + this.height / 2;
-      this.definition = opt.definition;
-      this.pixelDepth = opt.pixelDepth;
-      this.AMPLITUDE_FACTOR = 0.8;
+      this.definition = opt.definition; //** Resolution of the curve. Smaller value leads to smoother curve */
+
+      this.resolution = opt.resolution;
       this.GRAPH_X = 25;
       this.SPEED_FACTOR = 1;
       this.DEAD_PX = 2;
       this.ATT_FACTOR = 4;
       this.DESPAWN_FACTOR = 0.02;
-      this.NOOFCURVES_RANGES = [2, 5];
-      this.AMPLITUDE_RANGES = [0.3, 1];
-      this.OFFSET_RANGES = [-3, 3];
-      this.WIDTH_RANGES = [1, 3];
-      this.SPEED_RANGES = [0.5, 1];
-      this.DESPAWN_TIMEOUT_RANGES = [500, 2000];
       this.respawn();
     }
 
     _createClass(iOS9Curve, [{
-      key: "getRandomRange",
-      value: function getRandomRange(range) {
-        return range[0] + Math.random() * (range[1] - range[0]);
+      key: "getRandom",
+      value: function getRandom(minOrArray, max) {
+        var min = 0;
+
+        if (Array.isArray(minOrArray)) {
+          min = minOrArray[0];
+          max = minOrArray[1];
+        } else {
+          min = minOrArray;
+        }
+
+        return Math.random() * (max - min) + min;
+      }
+    }, {
+      key: "getRandomInt",
+      value: function getRandomInt(minOrArray, max) {
+        var min = 0;
+
+        if (Array.isArray(minOrArray)) {
+          min = minOrArray[0];
+          max = minOrArray[1];
+        } else {
+          min = minOrArray;
+        }
+
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
       }
     }, {
       key: "respawnSingle",
-      value: function respawnSingle(curveIndex) {
-        this.phases[curveIndex] = 0;
-        this.amplitudes[curveIndex] = 0;
-        this.despawnTimeouts[curveIndex] = this.getRandomRange(this.DESPAWN_TIMEOUT_RANGES);
-        this.offsets[curveIndex] = this.getRandomRange(this.OFFSET_RANGES);
-        this.speeds[curveIndex] = this.getRandomRange(this.SPEED_RANGES);
-        this.finalAmplitudes[curveIndex] = this.getRandomRange(this.AMPLITUDE_RANGES);
-        this.widths[curveIndex] = this.getRandomRange(this.WIDTH_RANGES);
-        this.verses[curveIndex] = this.getRandomRange([-1, 1]);
+      value: function respawnSingle(rippleIndex) {
+        this.phases[rippleIndex] = 0;
+        this.amplitudes[rippleIndex] = 0;
+        this.despawnTimeouts[rippleIndex] = this.getRandom(500, 2000); //original [500; 2000]
+        //moves the riples off center and makes it lower. [-5, 5] is about a max range 
+
+        this.offsets[rippleIndex] = this.getRandom(Math.round(-12 / this.curveCount), Math.round(12 / this.curveCount)); //[-3; 3]
+
+        this.speeds[rippleIndex] = this.getRandom(0.5, 1); //[0.5; 1]
+
+        this.finalAmplitudes[rippleIndex] = this.getRandom(0.3, 1); //origin: [0.3; 1]
+
+        this.widths[rippleIndex] = this.getRandom(1, 4); //[1; 3]
+        //keep it 0 to have one symmetrical curves. With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
+
+        this.ripples[rippleIndex] = this.getRandom(0, 0); //original: [-1, 1]  
       }
     }, {
       key: "respawn",
       value: function respawn() {
         this.spawnAt = Date.now();
-        this.noOfCurves = Math.floor(this.getRandomRange(this.NOOFCURVES_RANGES));
-        this.phases = new Array(this.noOfCurves);
-        this.offsets = new Array(this.noOfCurves);
-        this.speeds = new Array(this.noOfCurves);
-        this.finalAmplitudes = new Array(this.noOfCurves);
-        this.widths = new Array(this.noOfCurves);
-        this.amplitudes = new Array(this.noOfCurves);
-        this.despawnTimeouts = new Array(this.noOfCurves);
-        this.verses = new Array(this.noOfCurves);
+        /**
+         * Number of curves produced by the wave along y-axis
+         */
 
-        for (var curveIndex = 0; curveIndex < this.noOfCurves; curveIndex++) {
-          this.respawnSingle(curveIndex);
+        this.curveCount = this.getRandomInt(this.definition.curveCountRange); //original: [2, 5]
+
+        this.phases = new Array(this.curveCount);
+        this.offsets = new Array(this.curveCount);
+        this.speeds = new Array(this.curveCount);
+        this.finalAmplitudes = new Array(this.curveCount);
+        this.widths = new Array(this.curveCount);
+        this.amplitudes = new Array(this.curveCount);
+        this.despawnTimeouts = new Array(this.curveCount);
+        this.ripples = new Array(this.curveCount);
+
+        for (var i = 0; i < this.curveCount; i++) {
+          this.respawnSingle(i);
         }
       }
     }, {
@@ -227,43 +260,108 @@
       }
     }, {
       key: "yRelativePos",
-      value: function yRelativePos(i) {
+      value: function yRelativePos(xPos) {
         var y = 0;
 
-        for (var ci = 0; ci < this.noOfCurves; ci++) {
-          // Generate a static T so that each curve is distant from each other
-          var t = 4 * (-1 + ci / (this.noOfCurves - 1) * 2); // but add a dynamic offset
+        for (var curveIndex = 0; curveIndex < this.curveCount; curveIndex++) {
+          var t = this.curveCount == 1 ? 2 : 4 * (-1 + curveIndex / (this.curveCount - 1) * 2); // but add a dynamic offset
 
-          t += this.offsets[ci];
-          var k = 1 / this.widths[ci];
-          var x = i * k - t;
-          y += Math.abs(this.amplitudes[ci] * Math.sin(this.verses[ci] * x - this.phases[ci]) * this.globalAttFn(x));
-        } // Divide for NoOfCurves so that y <= 1
+          t += this.offsets[curveIndex];
+          var k = 1 / this.widths[curveIndex];
+          var x = xPos * k - t;
+          y += Math.abs(this.amplitudes[curveIndex] * Math.sin(this.ripples[curveIndex] * x - this.phases[curveIndex]) * this.globalAttFn(x));
+        } // Divide for number of ripples so that y <= 1
 
 
-        return y / this.noOfCurves;
+        return y / this.curveCount;
       }
     }, {
-      key: "_ypos",
-      value: function _ypos(i) {
-        return this.AMPLITUDE_FACTOR * this.midLine * this.controller.amplitude * this.yRelativePos(i) * this.globalAttFn(i / this.GRAPH_X * 2);
+      key: "ypos",
+      value: function ypos(pos) {
+        return this.height // multiplying by height will likely lead to clipping we will deal with that later
+        * this.controller.amplitude * this.yRelativePos(pos) * this.globalAttFn(pos / this.GRAPH_X * 2);
       }
     }, {
-      key: "_xpos",
-      value: function _xpos(i) {
-        return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2));
+      key: "xpos",
+      value: function xpos(i) {
+        return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.xOffset;
       }
     }, {
       key: "draw",
       value: function draw() {
-        var ctx = this.controller.ctx; //ctx.globalAlpha = 0.7;
-        //ctx.globalCompositeOperation = 'lighter';
+        var ctx = this.controller.ctx;
 
-        if (this.definition.supportLine) {
-          return this.drawSupportLine(ctx, this.definition.color);
+        if (this.definition.throughline) {
+          this.drawThroughline(ctx, this.definition);
+          return;
         }
 
-        for (var ci = 0; ci < this.noOfCurves; ci++) {
+        this.spawnDespawn();
+        var xAtMaxY = this.width / 2 + this.xOffset;
+        var maxY = -Infinity; // Write two opposite waves
+
+        var Y = [];
+        var X = []; //it itterates over [-25;25] range with looks very artificial
+
+        for (var i = -this.GRAPH_X; i <= this.GRAPH_X; i += this.resolution) {
+          var _x = this.xpos(i);
+
+          X.push(_x);
+
+          var _y = this.ypos(i);
+
+          if (maxY < _y) {
+            maxY = _y;
+            xAtMaxY = _x;
+          }
+
+          Y.push(_y);
+        }
+
+        var yMax = this.height / 2; //avoid clipping
+
+        if (maxY > yMax) {
+          for (var _i = 0; _i < Y.length; _i++) {
+            Y[_i] = Y[_i] / yMax;
+          }
+
+          maxY = maxY / yMax;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(X[0], this.midLine);
+
+        for (var _i2 = 0; _i2 < Y.length; _i2++) {
+          ctx.lineTo(X[_i2], this.midLine - Y[_i2]);
+        } //draw mirrir wave under the middline.
+
+
+        for (var _i3 = Y.length - 1; _i3 >= 0; _i3--) {
+          ctx.lineTo(X[_i3], this.midLine + Y[_i3] * this.definition.mirrorFactor);
+        }
+
+        ctx.closePath();
+        var x = xAtMaxY;
+        var y = this.midLine;
+        var r = maxY;
+        var gradient = ctx.createRadialGradient(x, y, r * 0.8, x, y, r * 0.4);
+        gradient.addColorStop(0, "rgba(".concat(this.definition.rgb.join(), ", ").concat(this.definition.alphaStart, ")"));
+        gradient.addColorStop(1, "rgba(".concat(this.definition.rgb.join(), ", ").concat(this.definition.alphaEnd, ")"));
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        if (maxY < this.DEAD_PX && this.prevMaxY > maxY) {
+          this.respawn();
+        }
+
+        this.prevMaxY = maxY;
+      }
+      /** Change amplitude and phase depending on the time */
+
+    }, {
+      key: "spawnDespawn",
+      value: function spawnDespawn() {
+        for (var ci = 0; ci < this.curveCount; ci++) {
           if (this.spawnAt + this.despawnTimeouts[ci] <= Date.now()) {
             this.amplitudes[ci] -= this.DESPAWN_FACTOR;
           } else {
@@ -273,64 +371,60 @@
           this.amplitudes[ci] = Math.min(Math.max(this.amplitudes[ci], 0), this.finalAmplitudes[ci]);
           this.phases[ci] = (this.phases[ci] + this.controller.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
         }
-
-        var maxY = -Infinity;
-
-        var _arr = [1, -1];
-
-        for (var _i = 0; _i < _arr.length; _i++) {
-          var sign = _arr[_i];
-          ctx.beginPath();
-
-          for (var i = -this.GRAPH_X; i <= this.GRAPH_X; i += this.pixelDepth) {
-            var x = this._xpos(i);
-
-            var y = this._ypos(i);
-
-            ctx.lineTo(x, this.midLine - sign * y);
-            maxY = Math.max(maxY, y);
-          }
-
-          ctx.closePath();
-          ctx.fillStyle = "rgba(".concat(this.definition.color, ", .5)");
-          ctx.strokeStyle = "rgba(".concat(this.definition.color, ", .5)");
-          ctx.fill();
-        }
-
-        if (maxY < this.DEAD_PX && this.prevMaxY > maxY) {
-          this.respawn();
-        }
-
-        this.prevMaxY = maxY;
       }
     }, {
-      key: "drawSupportLine",
-      value: function drawSupportLine(ctx, colorDef) {
+      key: "drawThroughline",
+      value: function drawThroughline(ctx, definition) {
         var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
         var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
         gradient.addColorStop(0, 'transparent');
-        gradient.addColorStop(0.1, "rgba(".concat(colorDef, ", 1)"));
-        gradient.addColorStop(0.9, "rgba(".concat(colorDef, ", 1)"));
+        gradient.addColorStop(0.1, "rgba(".concat(definition.rgb.join(), ", ").concat(definition.alphaStart, "})"));
+        gradient.addColorStop(0.9, "rgba(".concat(definition.rgb, ", ").concat(definition.alphaStart, ")"));
         gradient.addColorStop(1, 'transparent');
         ctx.fillStyle = gradient;
         ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
       }
     }], [{
-      key: "getDefinition",
-      value: function getDefinition(waveColors) {
-        return Object.assign([{
-          color: '255,255,255',
-          supportLine: true
-        }, {
-          // blue
-          color: '15, 82, 169'
-        }, {
-          // red
-          color: '173, 57, 76'
-        }, {
-          // green
-          color: '48, 220, 155'
-        }], waveColors);
+      key: "getDefinitions",
+      value: function getDefinitions(definitions) {
+        if (!definitions || definitions.length == 0) {
+          return [//defaults
+          {
+            rgb: '255,255,255',
+            alphaStart: 1,
+            alphaEnd: 1,
+            throughline: true
+          }, {
+            // blue
+            rgb: [15, 82, 169],
+            alphaStart: .5,
+            alphaEnd: .2
+          }, {
+            // red
+            rgb: [173, 57, 76],
+            alphaStart: .5,
+            alphaEnd: .2
+          }, {
+            // green
+            color: [48, 220, 155],
+            alphaStart: .5,
+            alphaEnd: .2
+          }];
+        } //assign default 
+
+
+        for (var i = 0; i < definitions.length; i++) {
+          var definition = definitions[i];
+          definition = Object.assign({
+            alphaStart: .5,
+            alphaEnd: .2,
+            mirrorFactor: 1,
+            curveCountRange: [1, 1]
+          }, definition);
+          definitions[i] = definition;
+        }
+
+        return definitions;
       }
     }]);
 
@@ -368,7 +462,7 @@
         width: this.canvas.width,
         height: this.canvas.height,
         autostart: false,
-        pixelDepth: 0.02,
+        resolution: 0.02,
         lerpSpeed: 0.1
       }, opt);
       /**
@@ -433,17 +527,18 @@
       this.curves = []; // Instantiate all curves based on the style
 
       if (this.opt.style === 'ios9') {
+        var definitions = iOS9Curve.getDefinitions(this.opt.curveDefinitions);
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;
 
         try {
-          for (var _iterator = iOS9Curve.getDefinition(this.opt.waveColors || [])[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            var def = _step.value;
+          for (var _iterator = definitions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var definition = _step.value;
             this.curves.push(new iOS9Curve({
               ctrl: this,
-              definition: def,
-              pixelDepth: this.opt.pixelDepth
+              definition: definition,
+              resolution: this.opt.resolution
             }));
           }
         } catch (err) {
@@ -467,10 +562,10 @@
 
         try {
           for (var _iterator2 = Curve.getDefinition()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var _def = _step2.value;
+            var def = _step2.value;
             this.curves.push(new Curve({
               ctrl: this,
-              definition: _def
+              definition: def
             }));
           }
         } catch (err) {
@@ -538,9 +633,10 @@
     }, {
       key: "_clear",
       value: function _clear() {
-        this.ctx.globalCompositeOperation = 'destination-out';
-        this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
-        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height); //leave for debugging
+        //this.ctx.strokeStyle = '#FFF';
+        //this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
       }
       /**
        * Draw all curves

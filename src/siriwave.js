@@ -31,7 +31,7 @@ export class Siriwave {
 				width: this.canvas.width,
 				height: this.canvas.height,
 				autostart: false,
-				pixelDepth: 0.02,
+				resolution: 0.02,
 				lerpSpeed: 0.1,
 			},
 			opt,
@@ -99,12 +99,13 @@ export class Siriwave {
 
 		// Instantiate all curves based on the style
 		if (this.opt.style === 'ios9') {
-			for (const def of iOS9Curve.getDefinition(this.opt.waveColors || [])) {
+			let definitions = iOS9Curve.getDefinitions(this.opt.curveDefinitions);
+			for (const definition of definitions) {
 				this.curves.push(
 					new iOS9Curve({
 						ctrl: this,
-						definition: def,
-						pixelDepth: this.opt.pixelDepth
+						definition: definition,
+						resolution: this.opt.resolution
 					}),
 				);
 			}
@@ -166,9 +167,12 @@ export class Siriwave {
 	 * @memberof Siriwave
 	 */
 	_clear() {
-		this.ctx.globalCompositeOperation = 'destination-out';
+		this.ctx.fillStyle = this.color;
 		this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
-		this.ctx.globalCompositeOperation = 'source-over';
+		
+		//leave for debugging
+		//this.ctx.strokeStyle = '#FFF';
+		//this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
 	}
 
 	/**

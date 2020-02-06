@@ -1,9 +1,14 @@
 declare module siriwave {
 
-	interface SiriwaveIOS9WaveColor {
+	interface SiriwaveIOS9CurveDefinition {
 		/** Color in for on 'r, g, b' string */
-		color: string,
-		supportLine: boolean
+		rgb: [number, number, number],
+		alphaStart?: number;
+		alphaEnd?: number;
+		throughline?: boolean;
+		//Dictates the amplitude of bottom part of the wave. Select value between 0 and 1.
+		mirrorFactor?: number;
+		curveCountRange?: [number, number];
 	}
 
 	interface SiriwaveOptions {
@@ -36,11 +41,10 @@ declare module siriwave {
 		/**Decide wether start the animation on boot. */
 		autostart?: boolean;
 		//** Number of step(in pixels) used when drawed on canvas. */
-		pixelDepth?: number;
+		resolution?: number;
 		/**Lerp speed to interpolate properties. */
 		lerpSpeed?: number;
-		
-		waveColors?: SiriwaveIOS9WaveColor[]
+		curveDefinitions?: SiriwaveIOS9CurveDefinition[]
 	}
 	class Siriwave {
 		constructor(options: SiriwaveOptions);
