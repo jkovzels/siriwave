@@ -1,12 +1,12 @@
 import raf from 'raf';
-import lerp from 'lerp';
+
 //import Curve from './curve'; commenting for now, not using
 import iOS9Curve from './ios9curve';
 
 export class Siriwave {
 	constructor(opt = {}) {
 
-		if(!opt.canvas) {
+		if (!opt.canvas) {
 			throw new Error("Canvas is required");
 		}
 
@@ -20,7 +20,6 @@ export class Siriwave {
 		this.opt = Object.assign(
 			{
 				style: 'ios',
-				ratio: 1,
 				speed: 0.2,
 				amplitude: 1,
 				frequency: 6,
@@ -31,16 +30,10 @@ export class Siriwave {
 				width: this.canvas.width,
 				height: this.canvas.height,
 				autostart: false,
-				resolution: 0.02,
-				lerpSpeed: 0.1,
+				resolution: 0.02
 			},
 			opt,
 		);
-
-		/**
-		 * Phase of the wave (passed to Math.sin function)
-		 */
-		this.phase = 0;
 
 		/**
 		 * Boolean value indicating the the animation is running
@@ -65,32 +58,24 @@ export class Siriwave {
 		/**
 		 * Width of the canvas multiplied by pixel ratio
 		 */
-		this.width = Number(this.opt.ratio * this.opt.width);
+		this.width = Number(this.opt.width);
 
 		/**
 		 * Height of the canvas multiplied by pixel ratio
 		 */
-		this.height = Number(this.opt.ratio * this.opt.height);
+		this.height = Number(this.opt.height);
 
 		/**
 		 * Color of the wave (used in Classic iOS)
 		 */
 		this.color = `rgb(${this.hex2rgb(this.opt.color)})`;
 
-		/**
-		 * An object containing controller variables that need to be interpolated
-		 * to an another value before to be actually changed
-		 */
-		this.interpolation = {
-			speed: this.speed,
-			amplitude: this.amplitude,
-		};
 
 		/**
 		 * 2D Context from Canvas
 		 */
 		this.ctx = this.canvas.getContext('2d');
-		
+
 		/**
 		 * Curves objects to animate
 		 */
@@ -103,9 +88,14 @@ export class Siriwave {
 			for (const definition of definitions) {
 				this.curves.push(
 					new iOS9Curve({
-						ctrl: this,
+						ctx: this.ctx,
 						definition: definition,
-						resolution: this.opt.resolution
+						speed: opt.speed,
+						resolution: opt.resolution,
+						xOffset: opt.xOffset,
+						yOffset: opt.yOffset,
+						height: opt.height,
+						width: opt.width
 					}),
 				);
 			}
@@ -145,31 +135,13 @@ export class Siriwave {
 	}
 
 	/**
-	 * Interpolate a property to the value found in $.interpolation
-	 * @param {String} propertyStr
-	 * @returns
-	 * @memberof Siriwave
-	 */
-	lerpProp(propertyStr) {
-		this[propertyStr] = lerp(
-			this[propertyStr],
-			this.interpolation[propertyStr],
-			this.opt.lerpSpeed,
-		);
-		if (this[propertyStr] - this.interpolation[propertyStr] === 0) {
-			this.interpolation[propertyStr] = null;
-		}
-		return this[propertyStr];
-	}
-
-	/**
 	 * Clear the canvas
 	 * @memberof Siriwave
 	 */
-	_clear() {
+	clear() {
 		this.ctx.fillStyle = this.color;
 		this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
-		
+
 		//leave for debugging
 		//this.ctx.strokeStyle = '#FFF';
 		//this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
@@ -179,32 +151,23 @@ export class Siriwave {
 	 * Draw all curves
 	 * @memberof Siriwave
 	 */
-	drawFrame(amplitide) {
-		if (amplitide || amplitide === 0){
-			this.setAmplitude(amplitide);
-		}
+	drawFrame(amplitide = 0) {
+		this.clear();
 		for (const curve of this.curves) {
-			curve.draw();
+			curve.draw(amplitide);
 		}
 	}
 
 	/**
-	 * Clear the space, interpolate values, calculate new steps and draws
+	 * Clear the space, \calculate new steps and draws
 	 * @returns
 	 * @memberof Siriwave
 	 */
 	startDrawCycle() {
 		if (this.run === false) return;
-		this._clear();
+		this.drawFrame(1);
 
-		// Interpolate values
-		if (this.interpolation.amplitude !== null) this.lerpProp('amplitude');
-		if (this.interpolation.speed !== null) this.lerpProp('speed');
-
-		this.drawFrame();
-		this.phase = (this.phase + (Math.PI / 2) * this.speed) % (2 * Math.PI);
-
-		raf(this.startDrawCycle.bind(this), 20);
+		raf(this.startDrawCycle.bind(this));
 	}
 
 	/* API */
@@ -214,7 +177,6 @@ export class Siriwave {
 	 * @memberof Siriwave
 	 */
 	start() {
-		this.phase = 0;
 		this.run = true;
 		this.startDrawCycle();
 	}
@@ -224,35 +186,6 @@ export class Siriwave {
 	 * @memberof Siriwave
 	 */
 	stop() {
-		this.phase = 0;
 		this.run = false;
-	}
-
-	/**
-	 * Set a new value for a property (interpolated)
-	 * @param {String} propertyStr
-	 * @param {Number} v
-	 * @memberof Siriwave
-	 */
-	set(propertyStr, v) {
-		this.interpolation[propertyStr] = Number(v);
-	}
-
-	/**
-	 * Set a new value for the speed property (interpolated)
-	 * @param {Number} v
-	 * @memberof Siriwave
-	 */
-	setSpeed(v) {
-		this.set('speed', v);
-	}
-
-	/**
-	 * Set a new value for the amplitude property (interpolated)
-	 * @param {Number} v
-	 * @memberof Siriwave
-	 */
-	setAmplitude(v) {
-		this.set('amplitude', v);
 	}
 }

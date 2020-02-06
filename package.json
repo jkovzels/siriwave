@@ -30,14 +30,13 @@
 		"rollup": "^0.66.3",
 		"rollup-plugin-babel": "^4.0.3",
 		"rollup-plugin-commonjs": "^9.1.8",
+		"rollup-plugin-copy": "^3.3.0",
 		"rollup-plugin-livereload": "^0.6.0",
 		"rollup-plugin-node-resolve": "^3.4.0",
 		"rollup-plugin-serve": "^0.6.0",
-		"rollup-plugin-uglify": "^6.0.0",
-		"rollup-plugin-copy": "^3.3.0"
+		"rollup-plugin-uglify": "^6.0.0"
 	},
 	"dependencies": {
-		"lerp": "^1.0.3",
 		"raf": "^3.4.0"
 	}
 }

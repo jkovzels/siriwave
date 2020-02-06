@@ -1,11 +1,11 @@
 export default class iOS9Curve {
 	constructor(opt = {}) {
-		this.controller = opt.ctrl;
+		this.ctx = opt.ctx;
 		this.speed = opt.speed;
-		this.xOffset = opt.ctrl.xOffset;
-		this.yOffset = opt.ctrl.yOffset;
-		this.height = opt.ctrl.height;
-		this.width = opt.ctrl.width;
+		this.xOffset = opt.xOffset;
+		this.yOffset = opt.yOffset;
+		this.height = opt.height;
+		this.width = opt.width;
 
 		/** Represents the middle line along y-axis in the allowed for drawing bounding box */
 		this.midLine = this.yOffset + this.height / 2;
@@ -20,7 +20,7 @@ export default class iOS9Curve {
 		this.SPEED_FACTOR = 1;
 		this.DEAD_PX = 2;
 		this.ATT_FACTOR = 4;
-		this.DESPAWN_FACTOR = 0.02;
+		this.DESPAWN_SPEED = 0.02;
 
 		this.respawn();
 	}
@@ -54,18 +54,18 @@ export default class iOS9Curve {
 		this.phases[rippleIndex] = 0;
 		this.amplitudes[rippleIndex] = 0;
 
-		this.despawnTimeouts[rippleIndex] = this.getRandom(500, 2000); //original [500; 2000]
+		this.despawnSteps[rippleIndex] = this.getRandom(60, 180); //original [500; 2000]
 		//moves the riples off center and makes it lower. [-5, 5] is about a max range 
 		this.offsets[rippleIndex] = this.getRandom(Math.round(-12 / this.curveCount), Math.round(12 / this.curveCount)); //[-3; 3]
 		this.speeds[rippleIndex] = this.getRandom(0.5, 1); //[0.5; 1]
-		this.finalAmplitudes[rippleIndex] = this.getRandom(0.3, 1); //origin: [0.3; 1]
+		this.finalAmplitudes[rippleIndex] = this.getRandom(0.4, 1); //origin: [0.3; 1]
 		this.widths[rippleIndex] = this.getRandom(1, 4);  //[1; 3]
 		//keep it 0 to have one symmetrical curves. With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
 		this.ripples[rippleIndex] = this.getRandom(0, 0); //original: [-1, 1]  
 	}
 
 	respawn() {
-		this.spawnAt = Date.now();
+		this.step = 0;
 		/**
 		 * Number of curves produced by the wave along y-axis
 		 */
@@ -74,10 +74,11 @@ export default class iOS9Curve {
 		this.phases = new Array(this.curveCount);
 		this.offsets = new Array(this.curveCount);
 		this.speeds = new Array(this.curveCount);
+		/** Minimal allowed aplitude of the curve */
 		this.finalAmplitudes = new Array(this.curveCount);
 		this.widths = new Array(this.curveCount);
 		this.amplitudes = new Array(this.curveCount);
-		this.despawnTimeouts = new Array(this.curveCount);
+		this.despawnSteps = new Array(this.curveCount);
 		this.ripples = new Array(this.curveCount);
 
 		for (let i = 0;i < this.curveCount;i++) {
@@ -110,7 +111,7 @@ export default class iOS9Curve {
 	ypos(pos) {
 		return (
 			this.height // multiplying by height will likely lead to clipping we will deal with that later
-			* this.controller.amplitude
+			* this.masterAmplitude
 			* this.yRelativePos(pos)
 			* this.globalAttFn((pos / this.GRAPH_X) * 2)
 		);
@@ -120,16 +121,15 @@ export default class iOS9Curve {
 		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.xOffset;
 	}
 
-	draw() {
-		const {ctx} = this.controller;
+	draw(amplidute) {
+		this.masterAmplitude = amplidute;
+		const ctx = this.ctx;
 		if (this.definition.throughline) {
 			this.drawThroughline(ctx, this.definition);
 			return;
 		}
 		this.spawnDespawn();
 
-
-		let minX = +Infinity;
 		let xAtMaxY = this.width / 2 + this.xOffset;
 		let maxY = -Infinity;
 
@@ -187,17 +187,18 @@ export default class iOS9Curve {
 		this.prevMaxY = maxY;
 	}
 
-	/** Change amplitude and phase depending on the time */
+	/** Change amplitude and phase depending on the current tick and random factor */
 	spawnDespawn() {
+		this.step++;
 		for (let ci = 0;ci < this.curveCount;ci++) {
-			if (this.spawnAt + this.despawnTimeouts[ci] <= Date.now()) {
-				this.amplitudes[ci] -= this.DESPAWN_FACTOR;
+			if (this.despawnSteps[ci] <= this.step) {
+				this.amplitudes[ci] -= this.DESPAWN_SPEED;
 			}
 			else {
-				this.amplitudes[ci] += this.DESPAWN_FACTOR;
+				this.amplitudes[ci] += this.DESPAWN_SPEED;
 			}
 			this.amplitudes[ci] = Math.min(Math.max(this.amplitudes[ci], 0), this.finalAmplitudes[ci]);
-			this.phases[ci] = (this.phases[ci] + this.controller.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
+			this.phases[ci] = (this.phases[ci] + this.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
 		}
 	}
 

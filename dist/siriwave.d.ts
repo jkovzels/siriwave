@@ -16,8 +16,6 @@ declare module siriwave {
 		canvas: HTMLCanvasElement;
 		/** The style of the wave: `ios` or `ios9` */
 		style?: 'ios' | 'ios9';
-		/** Ratio of the display to use. Calculated by default. */
-		ratio?: number;
 		/** The speed of the animation. */
 		speed?: number;
 		/**The amplitude of the complete wave. */
@@ -42,8 +40,6 @@ declare module siriwave {
 		autostart?: boolean;
 		//** Number of step(in pixels) used when drawed on canvas. */
 		resolution?: number;
-		/**Lerp speed to interpolate properties. */
-		lerpSpeed?: number;
 		curveDefinitions?: SiriwaveIOS9CurveDefinition[]
 	}
 	class Siriwave {
