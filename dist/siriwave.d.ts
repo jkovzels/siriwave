@@ -24,7 +24,7 @@ declare module siriwave {
 		frequency?: number;
 		/**The color of the wave, in hexadecimal form(`#336699`, `#FF0`). - Not available in iOS9 Style */
 
-		color?: string;
+		color?: string | null;
 		/** The`canvas` covers the entire width or height of the container. */
 		cover?: boolean;
 

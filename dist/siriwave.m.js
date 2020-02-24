@@ -372,7 +372,7 @@ function () {
      * Color of the wave (used in Classic iOS)
      */
 
-    this.color = "rgb(".concat(this.hex2rgb(this.opt.color), ")");
+    this.color = this.opt.color;
     /**
      * 2D Context from Canvas
      */
@@ -478,10 +478,13 @@ function () {
   }, {
     key: "clear",
     value: function clear() {
-      this.ctx.fillStyle = this.color;
-      this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height); //leave for debugging
+      if (this.color) {
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
+      } //leave for debugging
       //this.ctx.strokeStyle = '#FFF';
       //this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
+
     }
     /**
      * Draw all curves

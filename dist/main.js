@@ -334,7 +334,7 @@ class Siriwave {
 		/**
 		 * Color of the wave (used in Classic iOS)
 		 */
-		this.color = `rgb(${this.hex2rgb(this.opt.color)})`;
+		this.color = this.opt.color;
 
 
 		/**
@@ -405,9 +405,10 @@ class Siriwave {
 	 * @memberof Siriwave
 	 */
 	clear() {
-		this.ctx.fillStyle = this.color;
-		this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
-
+		if(this.color){
+			this.ctx.fillStyle = this.color;
+			this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
+		}
 		//leave for debugging
 		//this.ctx.strokeStyle = '#FFF';
 		//this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
