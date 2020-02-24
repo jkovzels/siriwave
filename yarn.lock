@@ -3138,6 +3138,12 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
   integrity sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=
 
+"siriwave@github:jkovzels/siriwave":
+  version "1.3.5"
+  resolved "https://codeload.github.com/jkovzels/siriwave/tar.gz/2339374aa9e526955e07fbad7b7af88881970245"
+  dependencies:
+    raf "^3.4.0"
+
 slash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"

@@ -2,13 +2,13 @@ export default class iOS9Curve {
 	constructor(opt = {}) {
 		this.ctx = opt.ctx;
 		this.speed = opt.speed;
-		this.xOffset = opt.xOffset;
-		this.yOffset = opt.yOffset;
+		this.x = opt.x;
+		this.y = opt.y;
 		this.height = opt.height;
 		this.width = opt.width;
 
 		/** Represents the middle line along y-axis in the allowed for drawing bounding box */
-		this.midLine = this.yOffset + this.height / 2;
+		this.midLine = this.y + this.height / 2;
 
 		this.definition = opt.definition;
 
@@ -118,7 +118,7 @@ export default class iOS9Curve {
 	}
 
 	xpos(i) {
-		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.xOffset;
+		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.x;
 	}
 
 	draw(amplidute) {
@@ -130,7 +130,7 @@ export default class iOS9Curve {
 		}
 		this.spawnDespawn();
 
-		let xAtMaxY = this.width / 2 + this.xOffset;
+		let xAtMaxY = this.width / 2 + this.x;
 		let maxY = -Infinity;
 
 
@@ -203,7 +203,7 @@ export default class iOS9Curve {
 	}
 
 	drawThroughline(ctx, definition) {
-		var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
+		var coordinates = [this.x, 0, this.width + this.x, 0];
 		var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
 		gradient.addColorStop(0, 'transparent');
 		gradient.addColorStop(0.1, `rgba(${definition.rgb.join()}, ${definition.alphaStart}})`);
@@ -211,7 +211,7 @@ export default class iOS9Curve {
 		gradient.addColorStop(1, 'transparent');
 
 		ctx.fillStyle = gradient;
-		ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
+		ctx.fillRect.apply(ctx, [this.x, this.midLine, this.width, 1]);
 	}
 
 	static getDefinitions(definitions) {

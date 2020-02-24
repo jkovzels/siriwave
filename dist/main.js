@@ -10,13 +10,13 @@ class iOS9Curve {
 	constructor(opt = {}) {
 		this.ctx = opt.ctx;
 		this.speed = opt.speed;
-		this.xOffset = opt.xOffset;
-		this.yOffset = opt.yOffset;
+		this.x = opt.x;
+		this.y = opt.y;
 		this.height = opt.height;
 		this.width = opt.width;
 
 		/** Represents the middle line along y-axis in the allowed for drawing bounding box */
-		this.midLine = this.yOffset + this.height / 2;
+		this.midLine = this.y + this.height / 2;
 
 		this.definition = opt.definition;
 
@@ -126,7 +126,7 @@ class iOS9Curve {
 	}
 
 	xpos(i) {
-		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.xOffset;
+		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.x;
 	}
 
 	draw(amplidute) {
@@ -138,7 +138,7 @@ class iOS9Curve {
 		}
 		this.spawnDespawn();
 
-		let xAtMaxY = this.width / 2 + this.xOffset;
+		let xAtMaxY = this.width / 2 + this.x;
 		let maxY = -Infinity;
 
 
@@ -211,7 +211,7 @@ class iOS9Curve {
 	}
 
 	drawThroughline(ctx, definition) {
-		var coordinates = [this.xOffset, 0, this.width + this.xOffset, 0];
+		var coordinates = [this.x, 0, this.width + this.x, 0];
 		var gradient = ctx.createLinearGradient.apply(ctx, coordinates);
 		gradient.addColorStop(0, 'transparent');
 		gradient.addColorStop(0.1, `rgba(${definition.rgb.join()}, ${definition.alphaStart}})`);
@@ -219,7 +219,7 @@ class iOS9Curve {
 		gradient.addColorStop(1, 'transparent');
 
 		ctx.fillStyle = gradient;
-		ctx.fillRect.apply(ctx, [this.xOffset, this.midLine, this.width, 1]);
+		ctx.fillRect.apply(ctx, [this.x, this.midLine, this.width, 1]);
 	}
 
 	static getDefinitions(definitions) {
@@ -291,8 +291,8 @@ class Siriwave {
 				frequency: 6,
 				color: '#fff',
 				cover: false,
-				xOffset: 0,
-				yOffset: 0,
+				x: 0,
+				y: 0,
 				width: this.canvas.width,
 				height: this.canvas.height,
 				autostart: false,
@@ -317,9 +317,9 @@ class Siriwave {
 		this.amplitude = Number(this.opt.amplitude);
 
 		/** Left and right padding in pixels of waveform allowed area on the canvas */
-		this.xOffset = Number(this.opt.xOffset);
+		this.x = Number(this.opt.x);
 		/** Bottom padding in pixels of waveform allowed area on the canvas */
-		this.yOffset = Number(this.opt.yOffset);
+		this.y = Number(this.opt.y);
 
 		/**
 		 * Width of the canvas multiplied by pixel ratio
@@ -358,8 +358,8 @@ class Siriwave {
 						definition: definition,
 						speed: opt.speed,
 						resolution: opt.resolution,
-						xOffset: opt.xOffset,
-						yOffset: opt.yOffset,
+						x: opt.x,
+						y: opt.y,
 						height: opt.height,
 						width: opt.width
 					}),
@@ -407,11 +407,11 @@ class Siriwave {
 	clear() {
 		if(this.color){
 			this.ctx.fillStyle = this.color;
-			this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
+			this.ctx.fillRect(this.x, this.y, this.width, this.height);
 		}
 		//leave for debugging
 		//this.ctx.strokeStyle = '#FFF';
-		//this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
+		//this.ctx.strokeRect(this.x, this.y, this.width, this.height);
 	}
 
 	/**

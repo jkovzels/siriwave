@@ -25,8 +25,8 @@ export class Siriwave {
 				frequency: 6,
 				color: '#fff',
 				cover: false,
-				xOffset: 0,
-				yOffset: 0,
+				x: 0,
+				y: 0,
 				width: this.canvas.width,
 				height: this.canvas.height,
 				autostart: false,
@@ -51,9 +51,9 @@ export class Siriwave {
 		this.amplitude = Number(this.opt.amplitude);
 
 		/** Left and right padding in pixels of waveform allowed area on the canvas */
-		this.xOffset = Number(this.opt.xOffset);
+		this.x = Number(this.opt.x);
 		/** Bottom padding in pixels of waveform allowed area on the canvas */
-		this.yOffset = Number(this.opt.yOffset);
+		this.y = Number(this.opt.y);
 
 		/**
 		 * Width of the canvas multiplied by pixel ratio
@@ -92,8 +92,8 @@ export class Siriwave {
 						definition: definition,
 						speed: opt.speed,
 						resolution: opt.resolution,
-						xOffset: opt.xOffset,
-						yOffset: opt.yOffset,
+						x: opt.x,
+						y: opt.y,
 						height: opt.height,
 						width: opt.width
 					}),
@@ -141,11 +141,11 @@ export class Siriwave {
 	clear() {
 		if(this.color){
 			this.ctx.fillStyle = this.color;
-			this.ctx.fillRect(this.xOffset, this.yOffset, this.width, this.height);
+			this.ctx.fillRect(this.x, this.y, this.width, this.height);
 		}
 		//leave for debugging
 		//this.ctx.strokeStyle = '#FFF';
-		//this.ctx.strokeRect(this.xOffset, this.yOffset, this.width, this.height);
+		//this.ctx.strokeRect(this.x, this.y, this.width, this.height);
 	}
 
 	/**

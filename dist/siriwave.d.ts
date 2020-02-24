@@ -29,9 +29,9 @@ declare module siriwave {
 		cover?: boolean;
 
 		/** Position on X axis starting which Siriwave is allowed to draw */
-		xOffset?: number,
+		x?: number,
 		/** Position on Y axis starting which Siriwave is allowed to draw */
-		yOffset?: number,
+		y?: number,
 		/**Width of the canvas. */
 		width?: number;
 		/**Height of the canvas. */
