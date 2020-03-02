@@ -9,7 +9,7 @@ var raf = _interopDefault(require('raf'));
 class iOS9Curve {
 	constructor(opt = {}) {
 		this.ctx = opt.ctx;
-		this.speed = opt.speed;
+		this.speed = opt.speed || 0.1;
 		this.x = opt.x;
 		this.y = opt.y;
 		this.height = opt.height;
@@ -21,7 +21,7 @@ class iOS9Curve {
 		this.definition = opt.definition;
 
 		//** Resolution of the curve. Smaller value leads to smoother curve */
-		this.resolution = opt.resolution;
+		this.resolution = opt.resolution || 0.02;
 
 		this.GRAPH_X = 25;
 

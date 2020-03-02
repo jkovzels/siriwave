@@ -31,7 +31,7 @@ function () {
     _classCallCheck(this, iOS9Curve);
 
     this.ctx = opt.ctx;
-    this.speed = opt.speed;
+    this.speed = opt.speed || 0.1;
     this.x = opt.x;
     this.y = opt.y;
     this.height = opt.height;
@@ -41,7 +41,7 @@ function () {
     this.midLine = this.y + this.height / 2;
     this.definition = opt.definition; //** Resolution of the curve. Smaller value leads to smoother curve */
 
-    this.resolution = opt.resolution;
+    this.resolution = opt.resolution || 0.02;
     this.GRAPH_X = 25;
     this.SPEED_FACTOR = 1;
     this.DEAD_PX = 2;
