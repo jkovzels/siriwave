@@ -20,7 +20,7 @@ export default class iOS9Curve {
 		this.SPEED_FACTOR = 1;
 		this.DEAD_PX = 2;
 		this.ATT_FACTOR = 4;
-		this.DESPAWN_SPEED = 0.02;
+		this.DECAY_SPEED = 0.05;
 
 		this.respawn();
 	}
@@ -49,21 +49,6 @@ export default class iOS9Curve {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
-
-	respawnSingle(rippleIndex) {
-		this.phases[rippleIndex] = 0;
-		this.amplitudes[rippleIndex] = 0;
-
-		this.despawnSteps[rippleIndex] = this.getRandom(60, 180); //original [500; 2000]
-		//moves the riples off center and makes it lower. [-5, 5] is about a max range 
-		this.offsets[rippleIndex] = this.getRandom(Math.round(-12 / this.curveCount), Math.round(12 / this.curveCount)); //[-3; 3]
-		this.speeds[rippleIndex] = this.getRandom(0.5, 1); //[0.5; 1]
-		this.finalAmplitudes[rippleIndex] = this.getRandom(0.4, 1); //origin: [0.3; 1]
-		this.widths[rippleIndex] = this.getRandom(1, 4);  //[1; 3]
-		//keep it 0 to have one symmetrical curves. With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
-		this.ripples[rippleIndex] = this.getRandom(0, 0); //original: [-1, 1]  
-	}
-
 	respawn() {
 		this.step = 0;
 		/**
@@ -72,11 +57,11 @@ export default class iOS9Curve {
 		this.curveCount = this.getRandomInt(this.definition.curveCountRange); //original: [2, 5]
 
 		this.phases = new Array(this.curveCount);
-		this.offsets = new Array(this.curveCount);
-		this.speeds = new Array(this.curveCount);
+		this.rndOffsets = new Array(this.curveCount);
+		this.rndSpeeds = new Array(this.curveCount);
 		/** Minimal allowed aplitude of the curve */
 		this.finalAmplitudes = new Array(this.curveCount);
-		this.widths = new Array(this.curveCount);
+		this.rndWidths = new Array(this.curveCount);
 		this.amplitudes = new Array(this.curveCount);
 		this.despawnSteps = new Array(this.curveCount);
 		this.ripples = new Array(this.curveCount);
@@ -85,35 +70,53 @@ export default class iOS9Curve {
 			this.respawnSingle(i);
 		}
 	}
+	respawnSingle(curveIndex) {
+		this.phases[curveIndex] = 1;
+		this.amplitudes[curveIndex] = this.getRandom(0, 1);
 
-	globalAttFn(x) {
+		this.despawnSteps[curveIndex] = 0;//this.getRandom(0, 0); //original [500; 2000]
+		//moves the ripples off center and makes it lower. [-5, 5] is about a max range 
+		this.rndOffsets[curveIndex] = this.getRandom(Math.round(-4 / this.curveCount), Math.round(4 / this.curveCount)); //[-3; 3]
+		this.rndSpeeds[curveIndex] = this.getRandom(0.5, 1); //[0.5; 1]
+		this.finalAmplitudes[curveIndex] = this.getRandom(0.3, 1); //origin: [0.3; 1]
+		this.rndWidths[curveIndex] = this.getRandom(1, 6);  //[1; 3]
+		//keep it 0 to have one symmetrical curves.
+		//With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
+		this.ripples[curveIndex] = 0;//this.getRandom(0, 0); //original: [-1, 1]  
+	}
+
+	bellFunc(x) {
 		return Math.pow(this.ATT_FACTOR / (this.ATT_FACTOR + Math.pow(x, 2)), this.ATT_FACTOR);
 	}
 
 	yRelativePos(xPos) {
 		let y = 0;
+		for (let ci = 0;ci < this.curveCount;ci++) {
+			const cc = this.curveCount;
+			let offset = (ci - (cc - 1) / 2) * cc;
+			//add dynamic random offset
+			offset += this.rndOffsets[ci];
 
-		for (let curveIndex = 0;curveIndex < this.curveCount;curveIndex++) {
-			let t = this.curveCount == 1 ? 2 : 4 * (-1 + (curveIndex / (this.curveCount - 1)) * 2);
+			//rWidth defines the speed of change on the bell function 
+			const rWidth = 1 / this.rndWidths[ci];
+			const x = xPos * rWidth - offset;
+			let z = this.bellFunc(x);
+			let a = this.amplitudes[ci];
 
-			// but add a dynamic offset
-			t += this.offsets[curveIndex];
-			const k = 1 / this.widths[curveIndex];
-			const x = xPos * k - t;
-			y += Math.abs(
-				this.amplitudes[curveIndex] * Math.sin(this.ripples[curveIndex] * x - this.phases[curveIndex]) * this.globalAttFn(x)
-			);
+			//ignore this for now
+			let p = this.ripples[ci] * x - this.phases[ci];
+			let sin = Math.sin(p);
+
+			y += Math.abs(a * z * sin);
 		}
-		// Divide for number of ripples so that y <= 1
 		return y / this.curveCount;
 	}
 
 	ypos(pos) {
 		return (
-			this.height // multiplying by height will likely lead to clipping we will deal with that later
-			* this.masterAmplitude
+			this.height
 			* this.yRelativePos(pos)
-			* this.globalAttFn((pos / this.GRAPH_X) * 2)
+			* this.bellFunc((pos / this.GRAPH_X) * 2)
 		);
 	}
 
@@ -121,20 +124,16 @@ export default class iOS9Curve {
 		return this.width * ((i + this.GRAPH_X) / (this.GRAPH_X * 2)) + this.x;
 	}
 
-	draw(amplidute) {
-		this.masterAmplitude = amplidute;
+
+	draw(amplitude) {
 		const ctx = this.ctx;
 		if (this.definition.throughline) {
 			this.drawThroughline(ctx, this.definition);
 			return;
 		}
-		this.spawnDespawn();
 
 		let xAtMaxY = this.width / 2 + this.x;
 		let maxY = -Infinity;
-
-
-		// Write two opposite waves
 
 		let Y = [];
 		let X = [];
@@ -143,7 +142,7 @@ export default class iOS9Curve {
 		for (let i = -this.GRAPH_X;i <= this.GRAPH_X;i += this.resolution) {
 			let x = this.xpos(i);
 			X.push(x);
-			let y = this.ypos(i);
+			let y = this.ypos(i) * amplitude;
 			if (maxY < y) {
 				maxY = y;
 				xAtMaxY = x;
@@ -152,12 +151,12 @@ export default class iOS9Curve {
 		}
 
 		const yMax = this.height / 2;
-		//avoid clipping
+		// //avoid clipping
 		if (maxY > yMax) {
 			for (let i = 0;i < Y.length;i++) {
-				Y[i] = Y[i] / yMax;
+				Y[i] = Y[i] / maxY * yMax;
 			}
-			maxY = maxY / yMax;
+			maxY = yMax;
 		}
 		ctx.beginPath();
 		ctx.moveTo(X[0], this.midLine);
@@ -165,7 +164,7 @@ export default class iOS9Curve {
 			ctx.lineTo(X[i], this.midLine - (Y[i]));
 		}
 
-		//draw mirrir wave under the middline.
+		//draw mirror wave under the middline.
 		for (let i = Y.length - 1;i >= 0;i--) {
 			ctx.lineTo(X[i], this.midLine + (Y[i]) * this.definition.mirrorFactor);
 		}
@@ -183,22 +182,24 @@ export default class iOS9Curve {
 
 		if (maxY < this.DEAD_PX && this.prevMaxY > maxY) {
 			this.respawn();
+		} else {
+			this.prevMaxY = maxY;
+			let ampDelta = Math.abs(this.masterAmplitude - amplitude);
+			if (ampDelta < amplitude * 0.1) { //if value of amp in 2 concequent frames is less then 10% we consider it noise and despawning the wave;
+				this.despawn();
+			}
 		}
-		this.prevMaxY = maxY;
+		this.masterAmplitude = amplitude;
 	}
 
 	/** Change amplitude and phase depending on the current tick and random factor */
-	spawnDespawn() {
+	despawn() {
 		this.step++;
 		for (let ci = 0;ci < this.curveCount;ci++) {
-			if (this.despawnSteps[ci] <= this.step) {
-				this.amplitudes[ci] -= this.DESPAWN_SPEED;
-			}
-			else {
-				this.amplitudes[ci] += this.DESPAWN_SPEED;
-			}
+			this.amplitudes[ci] -= this.DECAY_SPEED;
+
 			this.amplitudes[ci] = Math.min(Math.max(this.amplitudes[ci], 0), this.finalAmplitudes[ci]);
-			this.phases[ci] = (this.phases[ci] + this.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
+			this.phases[ci] = (this.phases[ci] + this.speed * this.rndSpeeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
 		}
 	}
 

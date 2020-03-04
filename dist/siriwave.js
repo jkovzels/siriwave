@@ -172,7 +172,7 @@
       this.SPEED_FACTOR = 1;
       this.DEAD_PX = 2;
       this.ATT_FACTOR = 4;
-      this.DESPAWN_SPEED = 0.02;
+      this.DECAY_SPEED = 0.05;
       this.respawn();
     }
 
@@ -207,25 +207,6 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
     }, {
-      key: "respawnSingle",
-      value: function respawnSingle(rippleIndex) {
-        this.phases[rippleIndex] = 0;
-        this.amplitudes[rippleIndex] = 0;
-        this.despawnSteps[rippleIndex] = this.getRandom(60, 180); //original [500; 2000]
-        //moves the riples off center and makes it lower. [-5, 5] is about a max range 
-
-        this.offsets[rippleIndex] = this.getRandom(Math.round(-12 / this.curveCount), Math.round(12 / this.curveCount)); //[-3; 3]
-
-        this.speeds[rippleIndex] = this.getRandom(0.5, 1); //[0.5; 1]
-
-        this.finalAmplitudes[rippleIndex] = this.getRandom(0.4, 1); //origin: [0.3; 1]
-
-        this.widths[rippleIndex] = this.getRandom(1, 4); //[1; 3]
-        //keep it 0 to have one symmetrical curves. With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
-
-        this.ripples[rippleIndex] = this.getRandom(0, 0); //original: [-1, 1]  
-      }
-    }, {
       key: "respawn",
       value: function respawn() {
         this.step = 0;
@@ -236,12 +217,12 @@
         this.curveCount = this.getRandomInt(this.definition.curveCountRange); //original: [2, 5]
 
         this.phases = new Array(this.curveCount);
-        this.offsets = new Array(this.curveCount);
-        this.speeds = new Array(this.curveCount);
+        this.rndOffsets = new Array(this.curveCount);
+        this.rndSpeeds = new Array(this.curveCount);
         /** Minimal allowed aplitude of the curve */
 
         this.finalAmplitudes = new Array(this.curveCount);
-        this.widths = new Array(this.curveCount);
+        this.rndWidths = new Array(this.curveCount);
         this.amplitudes = new Array(this.curveCount);
         this.despawnSteps = new Array(this.curveCount);
         this.ripples = new Array(this.curveCount);
@@ -251,8 +232,28 @@
         }
       }
     }, {
-      key: "globalAttFn",
-      value: function globalAttFn(x) {
+      key: "respawnSingle",
+      value: function respawnSingle(curveIndex) {
+        this.phases[curveIndex] = 1;
+        this.amplitudes[curveIndex] = this.getRandom(0, 1);
+        this.despawnSteps[curveIndex] = 0; //this.getRandom(0, 0); //original [500; 2000]
+        //moves the ripples off center and makes it lower. [-5, 5] is about a max range 
+
+        this.rndOffsets[curveIndex] = this.getRandom(Math.round(-4 / this.curveCount), Math.round(4 / this.curveCount)); //[-3; 3]
+
+        this.rndSpeeds[curveIndex] = this.getRandom(0.5, 1); //[0.5; 1]
+
+        this.finalAmplitudes[curveIndex] = this.getRandom(0.3, 1); //origin: [0.3; 1]
+
+        this.rndWidths[curveIndex] = this.getRandom(1, 6); //[1; 3]
+        //keep it 0 to have one symmetrical curves.
+        //With curveCount set to 1 non-zero value will produce symetrical ripples within the curve
+
+        this.ripples[curveIndex] = 0; //this.getRandom(0, 0); //original: [-1, 1]  
+      }
+    }, {
+      key: "bellFunc",
+      value: function bellFunc(x) {
         return Math.pow(this.ATT_FACTOR / (this.ATT_FACTOR + Math.pow(x, 2)), this.ATT_FACTOR);
       }
     }, {
@@ -260,23 +261,28 @@
       value: function yRelativePos(xPos) {
         var y = 0;
 
-        for (var curveIndex = 0; curveIndex < this.curveCount; curveIndex++) {
-          var t = this.curveCount == 1 ? 2 : 4 * (-1 + curveIndex / (this.curveCount - 1) * 2); // but add a dynamic offset
+        for (var ci = 0; ci < this.curveCount; ci++) {
+          var cc = this.curveCount;
+          var offset = (ci - (cc - 1) / 2) * cc; //add dynamic random offset
 
-          t += this.offsets[curveIndex];
-          var k = 1 / this.widths[curveIndex];
-          var x = xPos * k - t;
-          y += Math.abs(this.amplitudes[curveIndex] * Math.sin(this.ripples[curveIndex] * x - this.phases[curveIndex]) * this.globalAttFn(x));
-        } // Divide for number of ripples so that y <= 1
+          offset += this.rndOffsets[ci]; //rWidth defines the speed of change on the bell function 
 
+          var rWidth = 1 / this.rndWidths[ci];
+          var x = xPos * rWidth - offset;
+          var z = this.bellFunc(x);
+          var a = this.amplitudes[ci]; //ignore this for now
+
+          var p = this.ripples[ci] * x - this.phases[ci];
+          var sin = Math.sin(p);
+          y += Math.abs(a * z * sin);
+        }
 
         return y / this.curveCount;
       }
     }, {
       key: "ypos",
       value: function ypos(pos) {
-        return this.height // multiplying by height will likely lead to clipping we will deal with that later
-        * this.masterAmplitude * this.yRelativePos(pos) * this.globalAttFn(pos / this.GRAPH_X * 2);
+        return this.height * this.yRelativePos(pos) * this.bellFunc(pos / this.GRAPH_X * 2);
       }
     }, {
       key: "xpos",
@@ -285,8 +291,7 @@
       }
     }, {
       key: "draw",
-      value: function draw(amplidute) {
-        this.masterAmplitude = amplidute;
+      value: function draw(amplitude) {
         var ctx = this.ctx;
 
         if (this.definition.throughline) {
@@ -294,10 +299,8 @@
           return;
         }
 
-        this.spawnDespawn();
         var xAtMaxY = this.width / 2 + this.x;
-        var maxY = -Infinity; // Write two opposite waves
-
+        var maxY = -Infinity;
         var Y = [];
         var X = []; //it itterates over [-25;25] range with looks very artificial
 
@@ -306,7 +309,7 @@
 
           X.push(_x);
 
-          var _y = this.ypos(i);
+          var _y = this.ypos(i) * amplitude;
 
           if (maxY < _y) {
             maxY = _y;
@@ -316,14 +319,14 @@
           Y.push(_y);
         }
 
-        var yMax = this.height / 2; //avoid clipping
+        var yMax = this.height / 2; // //avoid clipping
 
         if (maxY > yMax) {
           for (var _i = 0; _i < Y.length; _i++) {
-            Y[_i] = Y[_i] / yMax;
+            Y[_i] = Y[_i] / maxY * yMax;
           }
 
-          maxY = maxY / yMax;
+          maxY = yMax;
         }
 
         ctx.beginPath();
@@ -331,7 +334,7 @@
 
         for (var _i2 = 0; _i2 < Y.length; _i2++) {
           ctx.lineTo(X[_i2], this.midLine - Y[_i2]);
-        } //draw mirrir wave under the middline.
+        } //draw mirror wave under the middline.
 
 
         for (var _i3 = Y.length - 1; _i3 >= 0; _i3--) {
@@ -350,26 +353,29 @@
 
         if (maxY < this.DEAD_PX && this.prevMaxY > maxY) {
           this.respawn();
+        } else {
+          this.prevMaxY = maxY;
+          var ampDelta = Math.abs(this.masterAmplitude - amplitude);
+
+          if (ampDelta < amplitude * 0.1) {
+            //if value of amp in 2 concequent frames is less then 10% we consider it noise and despawning the wave;
+            this.despawn();
+          }
         }
 
-        this.prevMaxY = maxY;
+        this.masterAmplitude = amplitude;
       }
       /** Change amplitude and phase depending on the current tick and random factor */
 
     }, {
-      key: "spawnDespawn",
-      value: function spawnDespawn() {
+      key: "despawn",
+      value: function despawn() {
         this.step++;
 
         for (var ci = 0; ci < this.curveCount; ci++) {
-          if (this.despawnSteps[ci] <= this.step) {
-            this.amplitudes[ci] -= this.DESPAWN_SPEED;
-          } else {
-            this.amplitudes[ci] += this.DESPAWN_SPEED;
-          }
-
+          this.amplitudes[ci] -= this.DECAY_SPEED;
           this.amplitudes[ci] = Math.min(Math.max(this.amplitudes[ci], 0), this.finalAmplitudes[ci]);
-          this.phases[ci] = (this.phases[ci] + this.speed * this.speeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
+          this.phases[ci] = (this.phases[ci] + this.speed * this.rndSpeeds[ci] * this.SPEED_FACTOR) % (2 * Math.PI);
         }
       }
     }, {
@@ -620,7 +626,7 @@
     }, {
       key: "drawFrame",
       value: function drawFrame() {
-        var amplitide = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var amplitide = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
         this.clear();
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;

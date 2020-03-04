@@ -152,7 +152,7 @@ export class Siriwave {
 	 * Draw all curves
 	 * @memberof Siriwave
 	 */
-	drawFrame(amplitide = 0) {
+	drawFrame(amplitide = 1) {
 		this.clear();
 		for (const curve of this.curves) {
 			curve.draw(amplitide);
